@@ -8,9 +8,14 @@ Reads in a deeptools computeMatrix file and computes average Profile as done for
 4. set ratio 0 for all cells in matrix with pseudocount in both kd and control
 5. average over all genes
 
-Usage: matrix_to_profile_Effie_like.py matrix.gz control_label [sample_label1,sample_label2,...] pseudocount outname
+Usage: matrix_to_profile_Effie_like.py matrix.gz control_label [sample_label1,sample_label2,...] pseudocount dropEmpty outname
+
+example: python matrix_to_profile_Effie_like.py matrix.gz eGFP Ars2,Cbp20 0.026 dropEmpty
 
 writes to matrix"_Effie_profiles.txt"
+pseudocount ... add float to be used as pseudocount
+"dropEmpty" ... drop lines where all values are 0
+
 
 '''
 
@@ -31,9 +36,14 @@ matrix_name = sys.argv[1]
 ctrl_name = sys.argv[2]
 sample_names = sys.argv[3].split(',')
 pseudocount = float(sys.argv[4])
+if sys.argv[5] == 'dropEmpty':
+    drop_empty = True
+else:
+    drop_empty = False
 
-if len(sys.argv) >= 6:
-    outfilename = sys.argv[5]
+
+if len(sys.argv) >= 7:
+    outfilename = sys.argv[6]
 else:
     outfilename = matrix_name.replace('.gz', '_sensitivity.gz')
 
@@ -47,7 +57,7 @@ with gzip.open(matrix_name, 'r') as f:
     #parse the headers
     meta = json.loads( f.readline().strip('@') )
 
-    print meta
+    #print meta
 
     #group boundaries sense and antisense
     grp_bnds = bounds_to_tuple(meta['group_boundaries'])
@@ -63,15 +73,16 @@ with gzip.open(matrix_name, 'r') as f:
 
     print sample_names
     print 'controls found: ', controls
-    print 'grp_kds found: ', grp_kds
-    print 'using start idx for control: ', ctrl_idx_starts #[sample_bnds[i[0]] for i in controls]
-    print 'using start idx for kds: ', kd_idx_starts #[[sample_bnds[i[0]] for i in kd] for kd in grp_kds]
-    print 'sample_bounds: ', sample_bnds
+    for i, s in enumerate(sample_names):
+        print 'for sample : ', s, '  found: ', grp_kds[i]
+    # print 'using start idx for control: ', ctrl_idx_starts #[sample_bnds[i[0]] for i in controls]
+    # print 'using start idx for kds: ', kd_idx_starts #[[sample_bnds[i[0]] for i in kd] for kd in grp_kds]
+    # print 'sample_bounds: ', sample_bnds
 
     bin = int(meta['bin size'])
     up = -int(meta['upstream'])
     dn = int(meta['downstream'])
-    print 'bin, up and down: ', bin, up, dn
+    print 'bp bin, upstream and downstream: ', bin, up, dn
 
 
     #adjust group_boundaries (ie lines for each 'group')
@@ -80,8 +91,7 @@ with gzip.open(matrix_name, 'r') as f:
     sens_meta['sample_labels'] = sample_names
     sens_meta['sample_boundaries'] = meta['sample_boundaries'][0:len(sample_names)+1]
 
-    print 'sens_meta_sample_bounds', sens_meta['sample_boundaries']
-
+    print 'writing sensitivities to ', outfilename
 
     with gzip.open(outfilename, 'wb') as outfile:
         h=json.dumps(sens_meta,separators=(',',':'))
@@ -92,13 +102,11 @@ with gzip.open(matrix_name, 'r') as f:
         for line in f:
             line = line.strip('\n').split()
 
-            #ctrl_means = [0 for i in range(up, dn, bin)]
-            #print len(ctrl_means)
+
             sensitivities = [[0 for i in range(up, dn-1, bin)] for k in grp_kds]
             for i, rel_pos in enumerate(range(up, dn-1, bin)):
 
                 idx_ctrls = [idx + i for idx in ctrl_idx_starts]
-                #print 'idx_ctrls', idx_ctrls
                 ctrl = np.mean([ float(line[idx]) + pseudocount if line[idx] != 'nan' else pseudocount for idx in idx_ctrls ])
 
 
@@ -108,8 +116,10 @@ with gzip.open(matrix_name, 'r') as f:
                     idx_kd = [idx + i for idx in kd_idx]
                     kd_mean = np.mean([ float(line[idx]) + pseudocount if line[idx] != 'nan' else pseudocount for idx in idx_kd ])
 
-                    sensitivity[j] = kd_mean / ctrl
-                    sensitivities[j][i] = kd_mean / ctrl
+                    if drop_empty and ctrl == pseudocount and kd_mean == pseudocount:
+                        sensitivity[j] = 'nan'
+                    else:
+                        sensitivities[j][i] = kd_mean / ctrl
 
             new_line = '\t'.join(line[0:6])
             new_line += '\t'
