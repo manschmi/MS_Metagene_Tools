@@ -25,12 +25,11 @@ plus_bw=$4
 minus_bw=$5
 up=$6
 dn=$7
-ref_point=$8
+anchor=$8
 title=$9
-ctrl_name=$10
-kd_names=$11
-out_dir=$12
-
+ctrl_name=${10}
+kd_names=${11}
+out_dir=${12}
 
 #title="histone"
 #anchor="TES"
@@ -49,11 +48,11 @@ $up $dn "${anchor}" "${out_dir}${title}_${anchor}"
 
 
 ## get the min value to be used as pseudocount
-min_val=`python min_value_in_matrix.py "${out_dir}${title}_${anchor}_joined.gz" greaterX=0`
+min_val=`python ~/Documents/MS_Metagene_Tools/min_value_in_matrix.py "${out_dir}${title}_${anchor}_joined.gz" greaterX=0`
 #0.02657
 
 #make the sensitivity matrix wo dropping empty values
-python matrix_to_sensitivity_profile_Effie_like.py "${out_dir}${title}_${anchor}_joined.gz" $ctrl_name $kd_names ${min_val} no
+python ~/Documents/MS_Metagene_Tools/matrix_to_sensitivity_profile_Effie_like.py "${out_dir}${title}_${anchor}_joined.gz" $ctrl_name $kd_names ${min_val} no
 
 ##check it out
 plotHeatmap -m "${out_dir}${title}_${anchor}_joined_sensitivity.gz" \
