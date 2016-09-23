@@ -33,7 +33,7 @@ import json
 BED_INFO_OFFSET = 5
 
 
-if len(sys.argv) <= 3 or sys.argv[1] == '-h':
+if len(sys.argv) <= 2 or sys.argv[1] == '-h':
     print __doc__
     exit()
 
@@ -52,6 +52,8 @@ else:
 def bounds_to_tuple(l):
     '''converts a list [0,10,20] to list of tuple [(0,10),(10,20)]'''
     return [(int(l[i])+1, int(l[i+1])) for i in range(len(l)-1)]
+
+print 'writing joined to ', outfilename
 
 #open sense and antisense file and iterate through an merge the contents
 with gzip.open(sense_name, 'r') as f, gzip.open(antisense_name, 'r') as f_as:
