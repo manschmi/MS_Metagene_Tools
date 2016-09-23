@@ -34,6 +34,7 @@ BED_INFO_OFFSET = 5
 
 
 if len(sys.argv) <= 2 or sys.argv[1] == '-h':
+    print '!! NEED MORE ARGUMENTS !!'
     print __doc__
     exit()
 
