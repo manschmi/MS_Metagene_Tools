@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 #usage:
-# bash ~/Documents/MS_Metagene_Tools/computeMatrixStranded.sh reference-point plus-bed minus-bed plus-bw minus-bw up down ref_point out_name
+# bash ~/ms_tools/MS_Metagene_Tools/computeMatrixStranded.sh reference-point plus-bed minus-bed plus-bw minus-bw up down ref_point out_name
 #
 #this requires the bed files to have strand information in field 6 !!
 
@@ -31,7 +31,7 @@ computeMatrix ${ref} -R ${minus_bed} \
 --outFileName ${out_name}_minus.gz
 
 echo "joining strands"
-python /Users/schmidm/Documents/MS_Metagene_Tools/join_matrix.py ${out_name}_plus.gz ${out_name}_minus.gz ${out_name}_joined.gz
+python ~/ms_tools/MS_Metagene_Tools/join_matrix.py ${out_name}_plus.gz ${out_name}_minus.gz ${out_name}_joined.gz
 
 
 elif [ ${ref} == "scale-regions" ]
@@ -47,7 +47,7 @@ computeMatrix ${ref} -R ${minus_bed} \
 --outFileName ${out_name}_minus.gz
 
 echo "joining strands"
-python /Users/schmidm/Documents/MS_Metagene_Tools/join_matrix.py ${out_name}_plus.gz ${out_name}_minus.gz ${out_name}_joined.gz
+python ~/ms_tools/MS_Metagene_Tools/join_matrix.py ${out_name}_plus.gz ${out_name}_minus.gz ${out_name}_joined.gz
 
 
 else
