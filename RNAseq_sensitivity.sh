@@ -2,14 +2,14 @@
 
 
 #usage:
-# bash ~/Documents/MS_Metagene_Tools/RNAseq_sensitivity.sh reference-point plus-bed minus-bed plus-bw minus-bw up down ref_point title ctrl_name kd_names out_dir
+# bash ~/ms_tools/MS_Metagene_Tools/RNAseq_sensitivity.sh reference-point plus-bed minus-bed plus-bw minus-bw up down ref_point title ctrl_name kd_names out_dir
 #
 # computes RNAseq sensitivity of bw using common control
 # this requires the bed files to have strand information in field 6 !!
 #
 # example:
 #
-# bash ~/Documents/MS_Metagene_Tools/RNAseq_sensitivity.sh reference-point \
+# bash ~/ms_tools/MS_Metagene_Tools/RNAseq_sensitivity.sh reference-point \
 # "/Users/schmidm/Documents/other_people_to_and_from/ClaudiaI/annotations/gencode_v23_hg19_rep_histones_plusw.bed" \
 # "/Users/schmidm/Documents/other_people_to_and_from/ClaudiaI/annotations/gencode_v23_hg19_rep_histones_minusw.bed" \
 # "/Users/schmidm/Documents/other_people_to_and_from/ClaudiaI/Effie_RNAseq_bws/*plus.bw" \
@@ -34,7 +34,7 @@ out_dir=${12}
 
 
 echo "computing deeptools matrix"
-bash ~/Documents/MS_Metagene_Tools/computeMatrixStranded.sh reference-point \
+bash ~/ms_tools/MS_Metagene_Tools/computeMatrixStranded.sh reference-point \
 "${plus_bed}" "${minus_bed}" \
 "${plus_bw}" "${minus_bw}" \
 $up $dn "${anchor}" "${out_dir}${title}_${anchor}"
@@ -42,12 +42,12 @@ $up $dn "${anchor}" "${out_dir}${title}_${anchor}"
 
 ## get the min value to be used as pseudocount
 echo "finding minimum value to be used as pseudocount"
-min_val=`python ~/Documents/MS_Metagene_Tools/min_value_in_matrix.py "${out_dir}${title}_${anchor}_joined.gz" greaterX=0`
+min_val=`python ~/ms_tools/MS_Metagene_Tools/min_value_in_matrix.py "${out_dir}${title}_${anchor}_joined.gz" greaterX=0`
 #0.02657
 
 #make the sensitivity matrix wo dropping empty values
 echo "computing the sensitivity matrix"
-python ~/Documents/MS_Metagene_Tools/matrix_to_sensitivity_profile_Effie_like.py "${out_dir}${title}_${anchor}_joined.gz" $ctrl_name $kd_names ${min_val} no
+python ~/ms_tools/MS_Metagene_Tools/matrix_to_sensitivity_profile_Effie_like.py "${out_dir}${title}_${anchor}_joined.gz" $ctrl_name $kd_names ${min_val} no
 
 ##check it out
 echo "creating heatmap of sensitivities to file ${out_dir}${title}_${anchor}_joined_sensitivity_heatmap.pdf"
