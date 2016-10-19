@@ -81,8 +81,9 @@ with gzip.open(matrix_name, 'r') as f:
 
     bin = int(meta['bin size'])
     up = -int(meta['upstream'])
+    body = int(meta['body'])
     dn = int(meta['downstream'])
-    print 'bp bin, upstream and downstream: ', bin, up, dn
+    print 'bp bin, upstream, body and downstream: ', bin, up, body, dn
 
 
     #adjust group_boundaries (ie lines for each 'group')
@@ -103,8 +104,8 @@ with gzip.open(matrix_name, 'r') as f:
             line = line.strip('\n').split()
 
 
-            sensitivities = [[0 for i in range(up, dn-1, bin)] for k in grp_kds]
-            for i, rel_pos in enumerate(range(up, dn-1, bin)):
+            sensitivities = [[0 for i in range(up, body+dn-1, bin)] for k in grp_kds]
+            for i, rel_pos in enumerate(range(up, body+dn-1, bin)):
 
                 idx_ctrls = [idx + i for idx in ctrl_idx_starts]
                 ctrl = np.mean([ float(line[idx]) + pseudocount if line[idx] != 'nan' else pseudocount for idx in idx_ctrls ])
