@@ -31,10 +31,10 @@ ctrl_name=${10}
 kd_names=${11}
 out_dir=${12}
 
-
+script_dir="$(dirname -- "$0")/"
 
 echo "computing deeptools matrix"
-bash ~/ms_tools/MS_Metagene_Tools/computeMatrixStranded.sh reference-point \
+bash ${script_dir}computeMatrixStranded.sh reference-point \
 "${plus_bed}" "${minus_bed}" \
 "${plus_bw}" "${minus_bw}" \
 $up $dn "${anchor}" "${out_dir}${title}_${anchor}"
@@ -42,12 +42,12 @@ $up $dn "${anchor}" "${out_dir}${title}_${anchor}"
 
 ## get the min value to be used as pseudocount
 echo "finding minimum value to be used as pseudocount"
-min_val=`python ~/ms_tools/MS_Metagene_Tools/min_value_in_matrix.py "${out_dir}${title}_${anchor}_joined.gz" greaterX=0`
+min_val=`python ${script_dir}min_value_in_matrix.py "${out_dir}${title}_${anchor}_joined.gz" greaterX=0`
 #0.02657
 
 #make the sensitivity matrix wo dropping empty values
 echo "computing the sensitivity matrix"
-python ~/ms_tools/MS_Metagene_Tools/matrix_to_sensitivity_profile_Effie_like.py "${out_dir}${title}_${anchor}_joined.gz" $ctrl_name $kd_names ${min_val} no
+python ${script_dir}matrix_to_sensitivity_profile_Effie_like.py "${out_dir}${title}_${anchor}_joined.gz" $ctrl_name $kd_names ${min_val} no
 
 ##check it out
 echo "creating heatmap of sensitivities to file ${out_dir}${title}_${anchor}_joined_sensitivity_heatmap.pdf"
