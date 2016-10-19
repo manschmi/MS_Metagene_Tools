@@ -34,7 +34,7 @@ computeMatrix ${ref} -R ${minus_bed} \
 --outFileName ${out_name}_minus.gz
 
 echo "joining strands"
-python ${script_dir}${out_name}_plus.gz ${out_name}_minus.gz ${out_name}_joined.gz
+python ${script_dir}join_matrix.py ${out_name}_plus.gz ${out_name}_minus.gz ${out_name}_joined.gz
 
 
 elif [ ${ref} == "scale-regions" ]
