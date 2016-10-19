@@ -16,6 +16,9 @@ dn=$7
 ref_point=$8
 out_name=$9
 
+script_dir="$(dirname -- "$0")/"
+
+
 if [ ${ref} == "reference-point" ]
 then
 echo "computing matrix for plus strand bed file"
@@ -31,7 +34,7 @@ computeMatrix ${ref} -R ${minus_bed} \
 --outFileName ${out_name}_minus.gz
 
 echo "joining strands"
-python ~/ms_tools/MS_Metagene_Tools/join_matrix.py ${out_name}_plus.gz ${out_name}_minus.gz ${out_name}_joined.gz
+python ${script_dir}${out_name}_plus.gz ${out_name}_minus.gz ${out_name}_joined.gz
 
 
 elif [ ${ref} == "scale-regions" ]
@@ -47,7 +50,7 @@ computeMatrix ${ref} -R ${minus_bed} \
 --outFileName ${out_name}_minus.gz
 
 echo "joining strands"
-python ~/ms_tools/MS_Metagene_Tools/join_matrix.py ${out_name}_plus.gz ${out_name}_minus.gz ${out_name}_joined.gz
+python ${script_dir}join_matrix.py ${out_name}_plus.gz ${out_name}_minus.gz ${out_name}_joined.gz
 
 
 else
