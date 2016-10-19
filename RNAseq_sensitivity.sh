@@ -34,7 +34,7 @@ out_dir=${12}
 script_dir="$(dirname -- "$0")/"
 
 echo "computing deeptools matrix"
-bash ${script_dir}computeMatrixStranded.sh reference-point \
+bash ${script_dir}computeMatrixStranded.sh "${ref}" \
 "${plus_bed}" "${minus_bed}" \
 "${plus_bw}" "${minus_bw}" \
 $up $dn "${anchor}" "${out_dir}${title}_${anchor}"
