@@ -42,8 +42,10 @@ $up $dn "${anchor}" "${out_dir}${title}_${anchor}"
 
 ## get the min value to be used as pseudocount
 echo "finding minimum value to be used as pseudocount"
-min_val=`python ${script_dir}min_value_in_matrix.py "${out_dir}${title}_${anchor}_joined.gz" greaterX=0`
+min_val=$(python "${script_dir}min_value_in_matrix.py" "${out_dir}${title}_${anchor}_joined.gz" greaterX=0)
+echo "found min val: "$min_val
 #0.02657
+
 
 #make the sensitivity matrix wo dropping empty values
 echo "computing the sensitivity matrix"
