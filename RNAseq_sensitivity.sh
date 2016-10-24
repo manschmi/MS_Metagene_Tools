@@ -29,26 +29,26 @@ anchor=$8
 title=$9
 ctrl_name=${10}
 kd_names=${11}
-out_dir=${12}
+out_name=${12}
 heatmap_options=${13}
 
 script_dir="$(dirname -- "$0")/"
 
 echo "--------------------------------"
 echo "--------------------------------"
-echo "computing deeptools matrix for file ${out_dir}${title}_${anchor}"
+echo "computing deeptools matrix for file ${out_name}"
 echo "--------------------------------"
 echo "--------------------------------"
 
 bash ${script_dir}computeMatrixStranded.sh ${ref} \
 "${plus_bed}" "${minus_bed}" \
 "${plus_bw}" "${minus_bw}" \
-$up $dn "${anchor}" "${out_dir}${title}_${anchor}"
+$up $dn "${anchor}" "${out_name}"
 
 
 ## get the min value to be used as pseudocount
 echo "finding minimum value to be used as pseudocount"
-min_val=$(python "${script_dir}min_value_in_matrix.py" "${out_dir}${title}_${anchor}_joined.gz" greaterX=0)
+min_val=$(python "${script_dir}min_value_in_matrix.py" "${out_name}_joined.gz" greaterX=0)
 echo "found min val: "$min_val
 #0.02657
 
@@ -59,7 +59,7 @@ echo "--------------------------------"
 echo "computing the sensitivity matrix"
 echo "--------------------------------"
 echo "--------------------------------"
-python ${script_dir}matrix_to_sensitivity_profile_Effie_like.py "${out_dir}${title}_${anchor}_joined.gz" $ctrl_name $kd_names ${min_val} no
+python ${script_dir}matrix_to_sensitivity_profile_Effie_like.py "${out_name}_joined.gz" $ctrl_name $kd_names ${min_val} no
 
 ##check it out
 #echo "creating heatmap of sensitivities to file ${out_dir}${title}_${anchor}_joined_sensitivity_heatmap.pdf"
