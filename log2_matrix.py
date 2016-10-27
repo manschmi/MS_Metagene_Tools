@@ -17,7 +17,7 @@ import sys
 import gzip
 import math
 
-if len(sys.argv) <= 2 or sys.argv[1] == '-h':
+if len(sys.argv) < 2 or sys.argv[1] == '-h':
     print __doc__
     exit()
 
