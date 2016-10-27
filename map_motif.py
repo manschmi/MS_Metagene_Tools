@@ -173,6 +173,6 @@ with open(args.fasta_file, 'r') as f:
             s = seq.get_interval(intvl.strand, intvl.start, intvl.end)
             hits = find_all(s, args.motif)
             if intvl.strand == '-':
-                offset = intvl.end - 1
+                offset = intvl.end - intvl.start + 1
                 hits = [offset - hit for hit in reversed(hits)]
             print str(intvl) + '\t' + ','.join(str(i) for i in hits)
