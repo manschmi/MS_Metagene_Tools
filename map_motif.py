@@ -170,9 +170,7 @@ with open(args.fasta_file, 'r') as f:
 
         if len(intvls) == 0: continue
         for intvl in intvls:
-            print intvl
             s = seq.get_interval(intvl.strand, intvl.start, intvl.end)
-            print s
             hits = find_all(s, args.motif)
             if intvl.strand == '-':
                 offset = intvl.end - 1
