@@ -2,22 +2,36 @@
 '''
 
 usage:
-        python map_motif.py <motif> <fasta_file> [-bed:bed_file]  [-s] [-count]
+        python map_motif.py <motif> <fasta_file> [-bed:bed_file] [-count]
 
 finds motif in fasta_file and reports the positions found for each sequence in fasta file
 
 output is of type
-seq_name\tab\comma-delimited positions
+bed_info\tab\comma-delimited positions
+when working without bed file
+chr\tab\1\tab\chr_length\tab\comma-delimited positions
 
 
-not implemented yet:: >>
-if option -count only sum of all hits to a single 'count'
+-count not implemented yet:: >>if option  only sum of all hits to a single 'count'
 
 if a bed file is specified only searches in bed file intervals instead of entire sequence in fasta file.
-ups bed file and fasta file names need to be sorted similarly
--s stranded version when searching bed file intervals
 
-<<:: not implemented yet
+automatically takes strand information into account if its present in the bed file, otherwise only scans plus strand of each interval.
+
+!! Input bed file is assumed to be and output positions are 0-based indices !!
+!! on the minus strand the position refers to the hit of the first based in the motif (ie right end on minus strand and left end on plus strand)
+!!sequence
+>chr1
+GATCATG
+
+bed
+chr1 0 6 . . +
+chr1 0 6 . . -
+
+motif AT is reported at
+chr1 0 6 . . + 1,4  (G-A-TC-A-TG)
+chr1 0 6 . . - 2,5  (GA-T-CA-T-G)
+
 '''
 
 __author__ = 'schmidm'
@@ -43,7 +57,7 @@ class Sequence:
         '''returns sequence interval from chromosome, end included'''
         if start < 0 or stop > len(self.seq)-1:
             return
-        s = self.seq[start:stop+1]
+        s = self.seq[start:stop]
         if strand == '-':
             return self.rev_com(s)
         else:
@@ -59,17 +73,28 @@ class Interval:
         self.end = int(line[2])
         if len(line) >= 4:
             self.col4 = line[3]
+        else: self.col4 = '.'
         if len(line) >= 5:
             self.col5 = line[4]
+        else: self.col5 = '.'
         if len(line) >= 6:
             self.strand = line[5]
         else:
             self.strand = '+'
         if len(line) > 6:
             self.extra = line[6:]
+        else: self.extra = []
 
     def __str__(self):
-        s=self.name+'\t'+str(self.start)+'\t'+str(self.end)+'\t'+self.col4+'\t' +self.col5+'\t'+self.strand+'\t'+'\t'.join(self.extra)
+        s=self.name+'\t'+str(self.start)+'\t'+str(self.end)
+        if self.col4:
+            s += '\t'+self.col4
+        if self.col5:
+            s += '\t' +self.col5
+        if self.strand:
+            s+= '\t'+self.strand
+        if self.extra:
+            s += '\t'+'\t'.join(self.extra)
         return s
 
 
@@ -141,13 +166,15 @@ with open(args.fasta_file, 'r') as f:
         if args.bed:
             intvls = [i for i in bed_intervals if i.name == seq.name]
         else:
-            intvls = Interval(seq.name+' 1 '+str(len(seq.seq)))
+            intvls = Interval(seq.name+' 0 '+str(len(seq.seq)))
 
         if len(intvls) == 0: continue
         for intvl in intvls:
+            print intvl
             s = seq.get_interval(intvl.strand, intvl.start, intvl.end)
+            print s
             hits = find_all(s, args.motif)
+            if intvl.strand == '-':
+                offset = intvl.end - 1
+                hits = [offset - hit for hit in reversed(hits)]
             print str(intvl) + '\t' + ','.join(str(i) for i in hits)
-
-        # hits = find_all(seq.seq, args.motif)
-        # print seq.name + '\t' + ','.join(str(i) for i in hits)
