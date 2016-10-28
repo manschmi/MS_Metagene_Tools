@@ -62,7 +62,7 @@ class Sequence:
 
     def get_interval(self, strand, start, stop):
         '''returns sequence interval from chromosome, end included'''
-        if start < 0 or stop > len(self.seq)-1:
+        if start < 0 or stop > len(self.seq):
             return
         s = self.seq[start:stop]
         if strand == '-':
@@ -174,7 +174,7 @@ with open(args.fasta_file, 'r') as f:
         if args.bed:
             intvls = [i for i in bed_intervals if i.name == seq.name]
         else:
-            intvls = Interval(seq.name+' 0 '+str(len(seq.seq)))
+            intvls = [Interval(seq.name+' 0 '+str(len(seq.seq)))]
 
         if len(intvls) == 0: continue
         for intvl in intvls:
