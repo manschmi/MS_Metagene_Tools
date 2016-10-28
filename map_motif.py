@@ -2,7 +2,7 @@
 '''
 
 usage:
-        python map_motif.py <motif> <fasta_file> [-bed:bed_file] [-count]
+        python map_motif.py <motif> <fasta_file> [-bed:bed_file] [-count] [-toBed]
 
 finds motif in fasta_file and reports the positions found for each sequence in fasta file
 
@@ -31,6 +31,13 @@ chr1 0 6 . . -
 motif AT is reported at
 chr1 0 6 . . + 1,4  (G-A-TC-A-TG)
 chr1 0 6 . . - 2,5  (GA-T-CA-T-G)
+
+
+option '-toBed' makes output in regular bed format
+chr1 1 3 1 . +  (G-AT-CATG)
+chr1 4 6 1 . +  (GATC-AT-G)
+chr1 1 3 1 . -  (G-AT-CATG)
+chr1 4 6 1 . -  (GATC-AT-G)
 
 '''
 
@@ -153,6 +160,7 @@ parser.add_argument('fasta_file')
 parser.add_argument('-bed', default=None)
 parser.add_argument('-s', action="store_true", default=True)
 parser.add_argument('-count', action="store_true", default=False)
+parser.add_argument('-toBed', action="store_true", default=False)
 
 args = parser.parse_args()
 
@@ -175,4 +183,16 @@ with open(args.fasta_file, 'r') as f:
             if intvl.strand == '-':
                 offset = intvl.end - intvl.start + 1
                 hits = [offset - hit for hit in reversed(hits)]
-            print str(intvl) + '\t' + ','.join(str(i) for i in hits)
+
+            if args.toBed:
+                if intvl.start != 0:
+                    hits = [intvl.start + hit for hit in hits]
+                    ends = [hit + len(args.motif) for hit in hits]
+                for hit in hits:
+                    if intvl.strand == '+':
+                        print seq.name + '\t' + str(hit) + '\t' + str(hit + len(args.motif)) + '\t1\t.\t+'
+                    else:
+                        print seq.name + '\t' + str(hit - len(args.motif) - 1) + '\t' + str(hit -1) + '\t1\t.\t-'
+
+            else:
+                print str(intvl) + '\t' + ','.join(str(i) for i in hits)
