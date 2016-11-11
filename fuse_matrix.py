@@ -22,10 +22,11 @@ __author__ = 'schmidm'
 import sys
 import gzip
 import json
+import os
 
 
 ##number to add for correct indexing of columns given that the first 6 columns
-BED_INFO_OFFSET = 5
+BED_INFO_OFFSET = 6
 
 
 if len(sys.argv) <= 2 or sys.argv[1] == '-h':
@@ -43,7 +44,7 @@ matrix2 = sys.argv[2]
 if len(sys.argv) >= 4:
     outfilename = sys.argv[3]
 else:
-    outfilename = sense_name.replace('.gz', '_') + antisense_name.replace('.gz', '_fused.gz')
+    outfilename = matrix1.replace('.gz', '_') + os.path.split(matrix2)[1].replace('.gz', '_fused.gz')
 
 def bounds_to_tuple(l):
     '''converts a list [0,10,20] to list of tuple [(0,10),(10,20)]'''
@@ -62,42 +63,47 @@ with gzip.open(matrix1, 'r') as f, gzip.open(matrix2, 'r') as f2:
     sample_bnds = bounds_to_tuple(meta['sample_boundaries'])
     sample_bnds2 = bounds_to_tuple(meta2['sample_boundaries'])
 
-
-
+    grp_bnds = bounds_to_tuple(meta['group_boundaries'])
 
     ##loop through the 2 files alternating, line by line
 
     joined_content = ''
-    for lnr in 1:grp_bnds[-1][1]:
-        line = f.readline()
+    for line in f:
         line = line.rstrip().split('\t')
-        meta = line[0:BED_INFO_OFFSET]
+        region = [line[0], line[1], line[2], line[5]]
+        #print region
 
         line2 = f2.readline()
         line2 = line2.rstrip().split('\t')
-        f2_meta = line2[0:BED_INFO_OFFSET]
+        region2 = [line2[0], line2[1], line2[2], line2[5]]
+        #print region2
 
-        assert meta == f2_meta, 'bed info for matrix1 does not fit bed info for matrix2 at line %r' % lnr
+        if region != region2:
+            raise Exception, ('bed info for matrix1 does not fit bed info for matrix 1 region: ' + ' '.join(str(x) for x in region) + ' vs matrix2 region: ' +  ' '.join(str(x) for x in region2))
 
-        f2_content = line2[BED_INFO_OFFSET:sample_bnds[-1][1]]
+        f2_content = line2[BED_INFO_OFFSET:]
 
-        joined_content += '\t'.join(line.extend(f2_content))
+        line.extend(f2_content)
+        joined_content += '\t'.join(line)
         joined_content += '\n'
 
 
 #adjust sample_boundaries (ie rows for each 'group')
+#print meta['sample_boundaries']
 
-max_sample_bnd = sample_bnds[-1][1]
-sample_bnds1 = [ b[1] for b in sample_bnds]
-sample_bnds2_shifted = [ max_sample_bnd + b[1] for b in sample_bnds2]
+sample_bnds1 = meta['sample_boundaries']
+max_sample_bnd = sample_bnds1[-1]
+
+sample_bnds2_shifted = [ max_sample_bnd + b for b in meta2['sample_boundaries'][1:]]
 
 joined_sample_bnds = sample_bnds1 + sample_bnds2_shifted
 
 joined_meta = meta
-joined_meta['sample_boundaries'] = [str(i) for i in joined_sample_bnds]
+joined_meta['sample_boundaries'] = joined_sample_bnds
 joined_meta['sample_labels'] = meta['sample_labels'] + meta2['sample_labels']
 
-
+print 'sample bounds after join: ', joined_meta['sample_boundaries']
+print 'samples after join: ', joined_meta['sample_labels']
 #write output
 with gzip.open(outfilename, 'wb') as f:
     h=json.dumps(joined_meta,separators=(',',':'))
