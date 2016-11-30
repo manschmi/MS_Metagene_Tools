@@ -79,8 +79,8 @@ matrix_region_cnt=0
 for region in bed_lines(bed):
     bed_region_cnt += 1
     # print 'REGION'
-    if bed_region_cnt % 10: print '.'
-    if bed_region_cnt % 100: print bed_region_cnt / 100
+    #if bed_region_cnt % 10: print '.'
+    #if bed_region_cnt % 100: print bed_region_cnt / 100
     found = False
     for line in matrix:
         if line[0] == region[0] and line[1] == region[1] and line[2] == region[2] and line[5] == region[5]:
@@ -88,6 +88,7 @@ for region in bed_lines(bed):
             found = True
             sorted_content.append('\t'.join(line))
             matrix_region_cnt += 1
+            break
 
     if not found:
         print 'WARNING region from bed file not found in matrix: ', region
