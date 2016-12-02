@@ -55,8 +55,9 @@ else:
 print 'writing resorted to ', outfile
 
 
-group_column = args.groupByColumn - 1
-if group_column:
+
+if args.groupByColumn:
+    group_column = args.groupByColumn - 1
     print 'grouping by column ', args.groupByColumn
 
 def bounds_to_tuple(l):
@@ -99,7 +100,7 @@ group_boundaries=[0]
 
 for region in bed_lines(bed):
 
-    if group_column and current_group_label != region[group_column]:
+    if args.groupByColumn and current_group_label != region[group_column]:
         if current_group_label != '' and group_boundaries[-1] != bed_region_cnt :
             print 'added group: ', current_group_label, ' at:', current_group_start, ' to ', bed_region_cnt
             group_labels.append(current_group_label)
@@ -124,19 +125,18 @@ for region in bed_lines(bed):
         matrix_region_cnt += 1
         bed_region_cnt -= 1
 
-if group_column and current_group_label != '' and group_boundaries[-1] != bed_region_cnt:
+if args.groupByColumn and current_group_label != '' and group_boundaries[-1] != bed_region_cnt:
     print 'added group: ', current_group_label, ' at:', current_group_start, ' to ', bed_region_cnt
     group_labels.append(current_group_label)
     group_boundaries.append(bed_region_cnt)
+
+    meta['group_boundaries'] = group_boundaries
+    meta['group_labels'] = group_labels
 
 if matrix_region_cnt != bed_region_cnt:
     print 'WARNING matrix contained ', matrix_region_cnt-bed_region_cnt, ' regions not present in bed file'
 
 print 'found', bed_region_cnt, ' regions in the matrix out of ', meta['group_boundaries'][1], 'regions in the bed file'
-
-
-meta['group_boundaries'] = group_boundaries
-meta['group_labels'] = group_labels
 
 #write output
 with gzip.open(outfile, 'wb') as f:
