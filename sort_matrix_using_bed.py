@@ -86,12 +86,12 @@ with gzip.open(matrix, 'r') as f:
     ##loop through the bed files and find matching row of matrix for each
 
     matrix = [line.split('\t') for line in f]
-
+    matrix_region_cnt = len(matrix)
 
 
 sorted_content = []
 bed_region_cnt=0
-matrix_region_cnt=0
+found_region_cnt=0
 current_group_label=''
 current_group_start=0
 group_labels=[]
@@ -99,44 +99,43 @@ group_boundaries=[0]
 #bed_regions_found=0
 
 for region in bed_lines(bed):
+    bed_region_cnt += 1
 
     if args.groupByColumn and current_group_label != region[group_column]:
         if current_group_label != '' and group_boundaries[-1] != bed_region_cnt :
             print 'added group: ', current_group_label, ' at:', current_group_start, ' to ', bed_region_cnt
             group_labels.append(current_group_label)
-            group_boundaries.append(bed_region_cnt)
+            group_boundaries.append(bed_region_cnt-1)
         current_group_label = region[group_column]
 
-    bed_region_cnt += 1
-    # print 'REGION'
-    #if bed_region_cnt % 10: print '.'
-    #if bed_region_cnt % 100: print bed_region_cnt / 100
     found = False
     for line in matrix:
         if line[0] == region[0] and line[1] == region[1] and line[2] == region[2] and line[5] == region[5]:
-            #print 'FOUND!'
+            found_region_cnt += 1
             found = True
             sorted_content.append('\t'.join(line))
-            matrix_region_cnt += 1
             break
 
     if not found:
         print 'WARNING region from bed file not found in matrix: ', region
-        matrix_region_cnt += 1
-        bed_region_cnt -= 1
 
-if args.groupByColumn and current_group_label != '' and group_boundaries[-1] != bed_region_cnt:
-    print 'added group: ', current_group_label, ' at:', current_group_start, ' to ', bed_region_cnt
-    group_labels.append(current_group_label)
-    group_boundaries.append(bed_region_cnt)
 
-    meta['group_boundaries'] = group_boundaries
-    meta['group_labels'] = group_labels
+if args.groupByColumn:
+    if current_group_label != '' and group_boundaries[-1] != found_region_cnt:
+        print 'added group: ', current_group_label, ' at:', current_group_start, ' to ', bed_region_cnt
+        group_labels.append(current_group_label)
+        group_boundaries.append(bed_region_cnt)
+else:
+    group_boundaries = [0,found_region_cnt]
+    group_labels = ['genes']
 
-if matrix_region_cnt != bed_region_cnt:
-    print 'WARNING matrix contained ', matrix_region_cnt-bed_region_cnt, ' regions not present in bed file'
+meta['group_boundaries'] = group_boundaries
+meta['group_labels'] = group_labels
 
-print 'found', bed_region_cnt, ' regions in the matrix out of ', meta['group_boundaries'][1], 'regions in the bed file'
+
+print 'bed file contained: ', bed_region_cnt, 'regions'
+print 'matrix file contained: ', matrix_region_cnt, 'regions'
+print 'found ', found_region_cnt, ' of the bed regions in the matrix'
 
 #write output
 with gzip.open(outfile, 'wb') as f:
