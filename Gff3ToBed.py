@@ -68,7 +68,7 @@ class Gene:
                           str(self.entry.start),
                           str(self.entry.end),
                           'gene:'+self.id.split(':')[1],
-                          '.',
+                          '0',
                           self.entry.strand])
 
 
@@ -118,10 +118,11 @@ class Transcript:
                           str(self.start),
                           str(self.end),
                           'transcript:' + self.parent.split(':')[1] + ':' + self.id,
-                          '.',
+                          '0',
                           self.strand,
                           str(self.thick_start),
                           str(self.thick_end),
+                          '0',
                           str(exon_cnt),
                           exon_sizes,
                           exon_starts])
