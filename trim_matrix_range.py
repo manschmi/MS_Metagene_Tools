@@ -51,6 +51,8 @@ with gzip.open(fname, 'r') as f:
     else:
         upstream_bin_sel = range(current_upstream_bins)
 
+    print 'upstream bins: ', upstream_bin_sel
+
     current_downstream_bins = meta['downstream'] / meta['bin size']
     first_downstream_bin = upstream_bin_sel[-1] + 1
     if args.downstream < meta['downstream']:
@@ -58,12 +60,12 @@ with gzip.open(fname, 'r') as f:
         downstream_bin_sel = range( first_downstream_bin, first_downstream_bin+new_downstream_bins )
         meta['downstream'] = args.downstream
     else:
-        downstream_bin_sel = range(current_downstream_bins)
+        downstream_bin_sel = range( first_downstream_bin, first_downstream_bin+current_downstream_bins )
 
-    #print 'upstream bins: ', upstream_bin_sel
-    #print 'downstream bins: ', downstream_bin_sel
+
+    print 'downstream bins: ', downstream_bin_sel
     bin_sel = upstream_bin_sel + downstream_bin_sel
-    #print 'all bins: ', bin_sel
+    print 'all bins: ', bin_sel
     bin_cnt = len(bin_sel)
     new_sample_bounds = [ bin_cnt * i for i in range(len(meta['sample_labels'])+1)]
 
