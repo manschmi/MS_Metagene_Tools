@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 '''Reads in a deeptools computeMatrix file and returns the matrix filter for all rows with sum below filterValue
 
-Usage: filter_matrix.py 'matrix'.gz --filterType [exact,below,above,below_or_equal,above_or_equal] --filterValue --filterBed --filterString --regexMatch --filterColumn --outFileName
+Usage: filter_matrix.py 'matrix'.gz --filterType [exact,below,above,below_or_equal,above_or_equal,not_equal] --filterValue --filterBed --filterString --regexMatch --filterColumn --outFileName
 
 
 default mode: filters matrix by sum in each row using filterValue above, below or exact, ...
@@ -35,7 +35,7 @@ parser.add_argument('--filterString', default='', type=str)
 parser.add_argument('--filterColumn', default=0, type=int)
 parser.add_argument('--regexMatch', default=False, action="store_true")
 parser.add_argument('--outFileName')
-parser.add_argument('--filterType', required=True, default='below', choices=['below', 'exact', 'above', 'above_or_equal', 'below_or_equal'])
+parser.add_argument('--filterType', required=True, default='below', choices=['below', 'exact', 'above', 'above_or_equal', 'below_or_equal', 'not_equal'])
 
 args = parser.parse_args()
 
@@ -101,6 +101,10 @@ with gzip.open(fname, 'r') as f:
                         filt_cnt += 1
                 elif args.filterType == 'above_or_equal':
                     if line_sum < args.filterValue:
+                        content += line
+                        filt_cnt += 1
+                elif args.filterType == 'not_equal':
+                    if line_sum != args.filterValue:
                         content += line
                         filt_cnt += 1
             lnr += 1
