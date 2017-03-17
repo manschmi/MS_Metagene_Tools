@@ -35,7 +35,7 @@ parser.add_argument('--filterString', default='', type=str)
 parser.add_argument('--filterColumn', default=0, type=int)
 parser.add_argument('--regexMatch', default=False, action="store_true")
 parser.add_argument('--outFileName')
-parser.add_argument('--filterType', required=True, default='below', choices=['below', 'exact', 'above'])
+parser.add_argument('--filterType', required=True, default='below', choices=['below', 'exact', 'above', 'above_or_equal', 'below_or_equal'])
 
 args = parser.parse_args()
 
