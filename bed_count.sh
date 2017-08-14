@@ -2,12 +2,16 @@
 
 #expands a bedgraph file to single nucleotide intervals of file $2
 # and uses bedtools map to count up features over file $1
-# using column $3
-#ie line:
-#   chrI 10 12 20 x +
+# using sum over column $3
+# output goes to file $4
+#ie line from file $2:
+#   chrI 10 12 20 2 +
 #will be converted to:
-#   chrI 10 11 20 x +
-#   chrI 11 12 20 x +
+#   chrI 10 11 20 2 +
+#   chrI 11 12 20 2 +
+# and counts from this file over interval in $1
+#   chrI 5 20 . . +
+# will give chrI 5 20 . . + 4
 
 awk '{OFS="\t"}
 { start=$2;
