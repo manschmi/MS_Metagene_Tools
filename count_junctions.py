@@ -23,7 +23,7 @@ import HTSeq
 bam_file = sys.argv[1]
 bed_file = sys.argv[2]
 
-MIN_OVERLAP = 5 #minimum amount of bases on each side of a junction that need to be present for a call
+MIN_OVERLAP = 2 #minimum amount of bases on each side of a junction that need to be present for a call
 
 
 
@@ -59,7 +59,15 @@ class INTERVAL:
 
 ##parse the bed file
 features =  HTSeq.GenomicArrayOfSets( "auto", stranded=True )
-bed_lines = ( line.rstrip().split( "\t" ) for line in open( bed_file ) )
+bed_lines = [ INTERVAL(line.rstrip().split( "\t" )) for line in open( bed_file ) ]
+bed_dict = {}
+for line in open( bed_file ):
+    iv = INTERVAL(line.rstrip().split( "\t" ))
+    try:
+        bed_dict[iv.chr][iv.strand].append(iv)
+    except:
+        bed_dict[iv.chr] = {'+': [], '-': []}
+        bed_dict[iv.chr][iv.strand] = [iv]
 
 
 ##load the bam file
@@ -74,10 +82,8 @@ unaligned_count = 0
 outside_range_count = 0
 i = 0
 bed_i = 0
-
-
-interval = INTERVAL(bed_lines.next())
-
+bed_chr = ''
+bed_strand = ''
 
 for aligned_read in aligned_reads:
     if not aligned_read.aligned:
@@ -92,63 +98,113 @@ for aligned_read in aligned_reads:
     #if i > 260000:
     #    break
 
-    # loop through introns upstream
-    while interval and (iv.chrom != interval.chr or iv.start > interval.end ):
-         print str(interval)
-         try:  # wrap all in a try / except
-             interval = INTERVAL(bed_lines.next())
-         except StopIteration, e:  # make the process on the last element here
-             exit()
+    #if iv.chrom == 'chrIII': break
 
-
-    #categorize the interval
-    if iv.chrom == interval.chr and iv.start < interval.end:
-        #upstream or overlapping
-
-        if iv.strand == interval.strand:
-            #wrong strand at least for those kind of RNAseq bam files
+    # get overlapping introns if any
+    if iv.chrom != bed_chr:
+        try:
+            plus_bed_ar = bed_dict[iv.chrom]['+']
+            minus_bed_ar = bed_dict[iv.chrom]['-']
+            bed_chr = iv.chrom
+            bed_i = 0
+            print 'switching to chr ', bed_chr, ' strand', bed_strand
+            #print plus_bed_ar
+            #print minus_bed_ar
+        except:
+            print 'failed to find chr or strand', iv.chrom, iv.strand
             continue
 
-        if iv.start < (interval.start - MIN_OVERLAP) and iv.end > interval.start:
-                #alignment starts upstream and ends internal or downstream
+    #note on those bams we are reverse complement to genome
+    if iv.strand == '-':
+        bed_ar = plus_bed_ar
+    elif iv.strand == '+':
+        bed_ar = minus_bed_ar
+    else:
+        print 'bam entry missing with strand not + or - !!'
+        continue
 
-                if (interval.start + MIN_OVERLAP) < iv.end < interval.end:
-                    #alignments ends internal --> 1st junction overlap
-                    interval.EI += 1
-                elif iv.end > (interval.end + MIN_OVERLAP):
-                    #potential exon-exon
-                    intron_found = False
-                    #make sure there is no internal alignment to intron
-                    for cigop in aligned_read.cigar:
-                        if cigop.type == "M" and interval.overlaps_internal(cigop.ref_iv):
-                            intron_found = True
-                            break
-                    if not intron_found:
-                        interval.EE += 1
+    if bed_i >= len(bed_ar):
+        bed_i = len(bed_ar) - 1
+
+    # move backward to before first potential overlapping intron
+    min_start = (iv.start - MIN_OVERLAP)
+    while 0 < bed_i and min_start > bed_ar[bed_i].end:
+        bed_i -= 1
+
+    #print 'backward to: ', bed_i #, str(bed_ar[bed_i])
+    # move forward to first potential overlapping intron
+    while bed_i < len(bed_ar) and iv.end < bed_ar[bed_i].start:
+        bed_i += 1
+
+    #print 'forward to: ', bed_i
+    if bed_i >= len(bed_ar):
+        #print 'out of luck for interval range', iv.start, iv.end
+        #break
+        continue
+
+    # loop through overlaps
+    while bed_i < len(bed_ar) and iv.start < bed_ar[bed_i].end:
+        interval = bed_ar[bed_i]
+        #print 'considering ', iv.start, '-', iv.end, 'for interval: ', interval.start, '-', interval.end
+        #categorize the interval
+        if iv.start < interval.end:
+            #upstream or overlapping
+            if iv.start < (interval.start - MIN_OVERLAP) and iv.end > interval.start:
+                    #alignment starts upstream and ends internal or downstream
+
+                    if (interval.start + MIN_OVERLAP) < iv.end < interval.end:
+                        #alignments ends internal --> 1st junction overlap
+                        #print 'added EI'
+                        interval.EI += 1
+                    elif iv.end > (interval.end + MIN_OVERLAP):
+                        #potential exon-exon
+                        intron_found = False
+                        #make sure there is no internal alignment to intron
+                        for cigop in aligned_read.cigar:
+                            if cigop.type == "M" and interval.overlaps_internal(cigop.ref_iv):
+                                intron_found = True
+                                print 'intronic in EE candidate'
+                                break
+                        if not intron_found:
+                            print 'added EE'
+                            interval.EE += 1
+                        else:
+                            #print 'added ambigous'
+                            interval.ambigous += 1
                     else:
+                        #ambigous
+                        #print 'added ambigous'
                         interval.ambigous += 1
-                else:
-                    #ambigous
-                    interval.ambigous += 1
 
-        elif interval.start < iv.start < (interval.end - MIN_OVERLAP):
-                # alignment starts inside
-                if iv.end < interval.end:
-                    # alignments ends internal --> intronic
-                    interval.intronic += 1
-                elif iv.end > (interval.end + MIN_OVERLAP):
-                    # intron-exon
-                    interval.IE += 1
-                else:
-                    # ambigous
-                    interval.ambigous += 1
+            elif interval.start < iv.start < (interval.end - MIN_OVERLAP):
+                    # alignment starts inside
+                    if iv.end < interval.end:
+                        # alignments ends internal --> intronic
+                        #print 'added intronic'
+                        interval.intronic += 1
+                    elif iv.end > (interval.end + MIN_OVERLAP):
+                        # intron-exon
+                        #print 'added IE', interval.id
+                        interval.IE += 1
+                    else:
+                        # ambigous
+                        #print 'added ambigous'
+                        interval.ambigous += 1
 
-        else:
-            outside_range_count += 1
+            else:
+                outside_range_count += 1
 
+        bed_i += 1
 
 # print 'bam file: ', bam_file
 # print '  interval file: ', bed_file
 # print '  total reads in bam file: ', i
 # print '  not aligned :', unaligned_count
 # print '  overlap bed intervals: ', (i - outside_range_count)
+
+print 'chr', '\t', 'start', '\t', 'end', '\t', 'id', '\t', 'score', '\t', 'strand', '\t', 'EE', '\t', 'IE', '\t', 'EI', '\t', 'intronic', '\t','ambigous'
+
+for chr in bed_dict:
+    for strand in ['+', '-']:
+        for iv in bed_dict[chr][strand]:
+            print iv
