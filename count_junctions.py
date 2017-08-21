@@ -81,7 +81,8 @@ aligned_reads = (almnt for almnt in almnt_file if almnt.aligned)
 unaligned_count = 0
 outside_range_count = 0
 i = 0
-bed_i = 0
+bed_i_plus = 0
+bed_i_minus = 0
 bed_chr = ''
 bed_strand = ''
 
@@ -106,21 +107,24 @@ for aligned_read in aligned_reads:
             plus_bed_ar = bed_dict[iv.chrom]['+']
             minus_bed_ar = bed_dict[iv.chrom]['-']
             bed_chr = iv.chrom
-            bed_i = 0
-            print 'switching to chr ', bed_chr, ' strand', bed_strand
-            #print plus_bed_ar
+            plus_bed_i = 0
+            minus_bed_i = 0
+             #print 'switching to chr ', bed_chr, ' strand', bed_strand
+            # #print plus_bed_ar
             #print minus_bed_ar
         except:
-            print 'failed to find chr or strand', iv.chrom, iv.strand
+             #print 'failed to find chr or strand', iv.chrom, iv.strand
             continue
 
     #note on those bams we are reverse complement to genome
     if iv.strand == '-':
         bed_ar = plus_bed_ar
+        bed_i = plus_bed_i
     elif iv.strand == '+':
         bed_ar = minus_bed_ar
+        bed_i = minus_bed_i
     else:
-        print 'bam entry missing with strand not + or - !!'
+         #print 'bam entry missing with strand not + or - !!'
         continue
 
     if bed_i >= len(bed_ar):
@@ -163,11 +167,13 @@ for aligned_read in aligned_reads:
                         for cigop in aligned_read.cigar:
                             if cigop.type == "M" and interval.overlaps_internal(cigop.ref_iv):
                                 intron_found = True
-                                print 'intronic in EE candidate'
+                                 #print 'intronic in EE candidate'
                                 break
                         if not intron_found:
-                            print 'added EE'
+                             #print 'added EE'
                             interval.EE += 1
+                            #if interval.id == 'YFL039C':
+                            #  print iv
                         else:
                             #print 'added ambigous'
                             interval.ambigous += 1
@@ -195,6 +201,10 @@ for aligned_read in aligned_reads:
                 outside_range_count += 1
 
         bed_i += 1
+        if iv.strand == '+':
+            plus_bed_i = bed_i
+        else:
+            minus_bed_i = bed_i
 
 # print 'bam file: ', bam_file
 # print '  interval file: ', bed_file
