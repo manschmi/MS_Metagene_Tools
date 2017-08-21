@@ -16,20 +16,22 @@ up=$5
 dn=$6
 ref_point=$7
 out_name=$8
-computeMatrix_args=${9}
+computeMatrix_args=$9
 
 
 script_dir="$(dirname -- "$0")/"
 
+echo $computeMatrix_args
 
 #split the strands
-echo "splitting bed file"
-plus_bed=${bed/.bed/_plus.bed}
-minus_bed=${bed/.bed/_minus.bed}
-awk '$6=="+"' $bed > $plus_bed
-awk '$6=="-"' $bed > $minus_bed
+echo "splitting bed file(s)"
 
+#awk '$6=="+"' $bed > $plus_bed
+#awk '$6=="-"' $bed > $minus_bed
 
+for f in $bed; do awk '$6=="+"' $f > ${f/.bed/_plus.bed}; awk '$6=="-"' $f > ${f/.bed/_minus.bed};done
+plus_bed=$(ls ${bed/.bed/_plus.bed} | tr "\n" "\t")
+minus_bed=$(ls ${bed/.bed/_minus.bed} | tr "\n" "\t")
 
 if [ ${ref} == "reference-point" ]
 then
