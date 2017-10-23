@@ -2,7 +2,7 @@
 
 help="
 usage:
- bash ~/ms_tools/MS_Metagene_Tools/matrix_to_sensitivity_matrixX.sh matrix_name ctrl_name KD_names out_name
+ bash ~/ms_tools/MS_Metagene_Tools/matrix_to_sensitivity_matrixX.sh matrix_name ctrl_name KD_names outfile_name
 # \n
 # computes RNAseq sensitivity of samples containing "KD_names" relative to "ctrl_name"\n
 # NOTE: this version uses a matrix as input
@@ -12,7 +12,7 @@ usage:
 # bash ~/ms_tools/MS_Metagene_Tools/RNAseq_sensitivity.sh \ \n
 # "matrix.gz" \ \n
 # eGFP "Ars2,Cbp20,Cbp80,NCBP3,Z18" out_dir \ \n
-# "/Users/schmidm/Documents/other_people_to_and_from/ClaudiaI/Effie_RNAseq_bws/RNAseq_deeptools_out/" \n
+# "matrix_rel_eGFP_sensitivity.gz" \n
 
 "
 
@@ -23,17 +23,9 @@ exit
 fi
 
 matrix=$1
-bed=$2
-plus_bw=$3
-minus_bw=$4
-up=$5
-dn=$6
-anchor=$7
-title=$8
-ctrl_name=${9}
-kd_names=${10}
-out_name=${11}
-computeMatrix_args="${12}"
+ctrl_name=${2}
+kd_names=${3}
+out_name=${4}
 
 script_dir="$(dirname -- "$0")/"
 
@@ -53,7 +45,7 @@ echo "--------------------------------"
 echo "computing the sensitivity matrix"
 echo "--------------------------------"
 echo "--------------------------------"
-python ${script_dir}matrix_to_sensitivity_profile_Effie_like.py "${matrix}" $ctrl_name $kd_names ${min_val} no
+python ${script_dir}matrix_to_sensitivity_profile_Effie_like.py "${matrix}" $ctrl_name $kd_names ${min_val} no no $out_name
 
 
 
