@@ -8,9 +8,9 @@ Reads in a deeptools computeMatrix file and computes average Profile as done for
 4. set ratio 0 for all cells in matrix with pseudocount in both kd and control
 5. average over all genes
 
-Usage: matrix_to_profile_Effie_like.py matrix.gz control_label [sample_label1,sample_label2,...] pseudocount dropEmpty outname
+Usage: matrix_to_profile_Effie_like.py matrix.gz control_label [sample_label1,sample_label2,...] pseudocount dropEmpty useNegativesForRatios outname
 
-example: python matrix_to_profile_Effie_like.py matrix.gz eGFP Ars2,Cbp20 0.026 dropEmpty
+example: python matrix_to_profile_Effie_like.py matrix.gz eGFP Ars2,Cbp20 0.026 no no "matrix_rel_eGFP_sensitivity.gz"
 
 writes to matrix"_Effie_profiles.txt"
 pseudocount ... add float to be used as pseudocount
@@ -47,8 +47,8 @@ else:
     use_negatives = False
 
 
-if len(sys.argv) >= 7:
-    outfilename = sys.argv[6]
+if len(sys.argv) >= 8:
+    outfilename = sys.argv[7]
 else:
     outfilename = matrix_name.replace('.gz', '_sensitivity.gz')
 
