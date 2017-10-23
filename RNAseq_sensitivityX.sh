@@ -2,11 +2,10 @@
 
 help="
 usage:
- bash ~/ms_tools/MS_Metagene_Tools/RNAseq_sensitivityX.sh reference-point bed plus-bw minus-bw up down ref_point title ctrl_name kd_names out_dir computeMatrixArgs \n
+ bash ~/ms_tools/MS_Metagene_Tools/matrix_sensitivityX.sh rmatrix ctrl_name kd_names out_name
 # \n
-# computes RNAseq sensitivity of bw using common control \n
-# this requires the bed files to have strand information in field 6 !! \n
-# NOTE: this version splits the bed file automatically
+# computes RNAseq sensitivity of samples containing "kd_names" relative to "ctrl_name"\n
+# NOTE: this version uses a matrix as inpout
 # \n
 # example: \n
 # \n
@@ -37,7 +36,7 @@ title=$8
 ctrl_name=${9}
 kd_names=${10}
 out_name=${11}
-computeMatrix_args=${12}
+computeMatrix_args="${12}"
 
 script_dir="$(dirname -- "$0")/"
 
@@ -50,7 +49,7 @@ echo "--------------------------------"
 bash ${script_dir}computeMatrixStrandedX.sh ${ref} \
 "${bed}" "${plus_bw}" "${minus_bw}" \
 $up $dn "${anchor}" "${out_name}" \
-$computeMatrix_args
+"$computeMatrix_args"
 
 
 ## get the min value to be used as pseudocount
