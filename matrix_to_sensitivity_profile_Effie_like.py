@@ -15,7 +15,7 @@ example: python matrix_to_profile_Effie_like.py matrix.gz eGFP Ars2,Cbp20 0.026 
 writes to matrix"_Effie_profiles.txt"
 pseudocount ... add float to be used as pseudocount
 "dropEmpty" ... drop lines where all values are 0
-
+"useNegativesForRatios" ... use negatives after averaging before making ratio, default is set to pseudocount!
 
 '''
 
@@ -40,6 +40,11 @@ if sys.argv[5] == 'dropEmpty':
     drop_empty = True
 else:
     drop_empty = False
+
+if len(sys.argv) >= 7 and sys.argv[6] == 'useNegativesForRatios':
+    use_negatives = True
+else:
+    use_negatives = False
 
 
 if len(sys.argv) >= 7:
@@ -110,12 +115,17 @@ with gzip.open(matrix_name, 'r') as f:
                 idx_ctrls = [idx + i for idx in ctrl_idx_starts]
                 ctrl = np.mean([ float(line[idx]) + pseudocount if line[idx] != 'nan' else pseudocount for idx in idx_ctrls ])
 
+                if not use_negatives and ctrl <= pseudocount:
+                    ctrl = pseudocount
 
                 #for each kd:
                 sensitivity = [0 for k in grp_kds]
                 for j, kd_idx in enumerate(kd_idx_starts):
                     idx_kd = [idx + i for idx in kd_idx]
                     kd_mean = np.mean([ float(line[idx]) + pseudocount if line[idx] != 'nan' else pseudocount for idx in idx_kd ])
+
+                    if not use_negatives and kd_mean <= pseudocount:
+                        kd_mean = pseudocount
 
                     if drop_empty and ctrl == pseudocount and kd_mean == pseudocount:
                         sensitivity[j] = 'nan'
