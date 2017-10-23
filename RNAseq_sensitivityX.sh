@@ -2,10 +2,10 @@
 
 help="
 usage:
- bash ~/ms_tools/MS_Metagene_Tools/matrix_sensitivityX.sh rmatrix ctrl_name kd_names out_name
+ bash ~/ms_tools/MS_Metagene_Tools/RNAseq_sensitivity.sh reference-point bed plus_bw minus_bw up dn anchor title ctrl_name out_name computeMatrixArgs
 # \n
 # computes RNAseq sensitivity of samples containing "kd_names" relative to "ctrl_name"\n
-# NOTE: this version uses a matrix as inpout
+# NOTE: this version uses bigwigs as input
 # \n
 # example: \n
 # \n
@@ -67,12 +67,6 @@ echo "--------------------------------"
 echo "--------------------------------"
 python ${script_dir}matrix_to_sensitivity_profile_Effie_like.py "${out_name}_joined.gz" $ctrl_name $kd_names ${min_val} no
 
-##check it out
-#echo "creating heatmap of sensitivities to file ${out_dir}${title}_${anchor}_joined_sensitivity_heatmap.pdf"
-#plotHeatmap -m "${out_dir}${title}_${anchor}_joined_sensitivity.gz" \
-#      --sortUsing max --kmeans 1 --colorMap Blues --missingDataColor white \
-#      --refPointLabel "${anchor}" --plotTitle "${title}" \
-#      -out "${out_dir}${title}_${anchor}_joined_sensitivity_heatmap.pdf"
 
 
 
