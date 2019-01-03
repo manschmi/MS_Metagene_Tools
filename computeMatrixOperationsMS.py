@@ -15,6 +15,7 @@ on files produced by computeMatrix.
 
 detailed help:
     AVAILABLE TOOLS:
+        - scaleBy
         - nanToValue
         - addPseudoCount
         - binarize
@@ -27,6 +28,9 @@ detailed help:
 
 
 DETAILS:
+
+  computeMatrixOperationsMS scaleBy <value>
+        multiplies all values by a specific value, requires a value, ie -1 for negation
 
   computeMatrixOperationsMS nanToValue <value>
         sets all nan bins to a specific value, requires a value, typically 0
@@ -86,7 +90,8 @@ OPERATION CHAINING:
 
 
 def perform_operations(args, matrix):
-    operations_dict = {'nanToValue': nanToValue,
+    operations_dict = {'scaleBy': scaleValue,
+                       'nanToValue': nanToValue,
                        'addPseudoCount': add_pseudocount,
                        'log2': log2,
                        'binarize': binarize,
@@ -108,6 +113,20 @@ def perform_operations(args, matrix):
         else:
             op_arg_str = None
         operations_dict[op](matrix, op_arg_str)
+
+
+def scaleValue(matrix, scaleFactor):
+    """
+    converts all nan bins to a specific value
+    """
+    if not scaleFactor:
+        raise Exception('cannot perform scaling without a value')
+
+    print('  scaling by value: ' + str(scaleFactor))
+
+    matrix.matrix *= float(scaleFactor)
+
+    return
 
 
 def nanToValue(matrix, nanValue):
@@ -287,7 +306,6 @@ def sortUsingBed(matrix, arg_str):
             matrix.group_boundaries.append(i)
             #except:
             #    raise Exception('regrouping failed')
-
     return
 
 
@@ -307,6 +325,11 @@ def subset(matrix, arg_str):
 
 
 def trimLabels(matrix, arg_str):
+    '''
+    :param matrix: the matrix
+    :param arg_str: of type ""
+    :return:
+    '''
     args = arg_str.split(';')
     sample_regexes = group_regexes = None
     for arg in args:
