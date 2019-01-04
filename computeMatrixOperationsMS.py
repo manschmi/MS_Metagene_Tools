@@ -35,7 +35,6 @@ DETAILS:
   computeMatrixOperationsMS nanToValue <value>
         sets all nan bins to a specific value, requires a value, typically 0
 
-
   computeMatrixOperationsMS addPseudoCount <value>
         if value is skipped it will use the minimum positive value in the matrix
 
@@ -50,17 +49,23 @@ DETAILS:
         samples not matched by any of the regexes are removed
         output sample names are the regex used
 
+  computeMatrixOperationsMS diffToSample=regex
+        display matrix as difference relative to the sample
+        UPS: only regex matching a single sample are allowed!
+
   computeMatrixOperationsMS ratioToSample=regex
         display matrix as ratio relative to the sample
         UPS: only regex matching a single sample are allowed!
 
   computeMatrixOperationsMS sortUsingBed=file1.bed,file2.bed;groupByColumn:6
         resort using the specified bed files.
-        optional groupByColumn, if the bed files have column with group identifiers these will be used for grouping
+        optional groupByColumn, if the bed files have column with group identifiers these will
+        be used for grouping (ups: group column index is 0 based)
 
   computeMatrixOperationsMS subset=samples:sample_regex1,sample_regex2;groups:group_regex1,group_regex2
         subsets the matrix for samples and groups, order or argument is obeyed, ie can be used for resorting
-        note: regex will NOT be used as sample and group names in the output (these are preserved as multiple hits are possible)
+        note: regex will NOT be used as sample and group names in the output
+        (these are preserved as multiple hits are possible)
         UPS: not that commas are now allowed in the regexes for now
 
   computeMatrixOperationsMS trimLabels=samples:sample_regex1,sample_regex2;groups:group_regex1,group_regex2
@@ -96,6 +101,7 @@ def perform_operations(args, matrix):
                        'log2': log2,
                        'binarize': binarize,
                        'averageSamples': averageSamples,
+                       'diffToSample': diffToSample,
                        'ratioToSample': ratioToSample,
                        'sortUsingBed': sortUsingBed,
                        'subset': subset,
@@ -215,6 +221,38 @@ def averageSamples(matrix, regex_str):
     matrix.matrix=mat
     matrix.sample_boundaries = [ncol_per_sample*i for i in range(len(labels_list)+1)]
     matrix.sample_labels = labels_list
+
+    return
+
+
+def diffToSample(matrix, label):
+    """
+    Given a sample label (substring interpreted as regex), substracts values from sample from all others and drops it
+    """
+
+    bounds = matrix.sample_boundaries
+    sample_labels = matrix.sample_labels
+    ref_idx = [i for i, sample in enumerate(sample_labels) if re.search(label, sample)]
+
+    if len(ref_idx) == 0:
+        raise Exception('found no sample matching diffToSample argument: ', label)
+    elif len(ref_idx) > 1:
+        raise Exception('found more than one sample to subtract: ', ','.join(str(i) for i in ref_idx))
+    else:
+        ref_idx = ref_idx[0]
+
+    ref_cols = np.array(range(bounds[ref_idx],bounds[ref_idx+1]))
+    ref_mat = matrix.matrix[:, ref_cols]
+    matrix.matrix = np.delete(matrix.matrix, ref_cols, axis=1)
+
+    col_list = [np.array(range(bounds[i], bounds[i+1])) for i in range(len(sample_labels)-1)]
+
+    mats = [matrix.matrix[:, cols] - ref_mat for cols in col_list]
+    matrix.matrix = np.concatenate(mats, axis=1)
+
+    matrix.sample_boundaries.pop()
+    matrix.sample_labels.pop(ref_idx)
+    matrix.sample_labels = [l + '-' + label for l in matrix.sample_labels]
 
     return
 
