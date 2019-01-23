@@ -45,11 +45,11 @@ fi
 
 
 echo "computing matrix for plus strand annotations"
-computeMatrix ${ref} -S ${plus_bw} -R ${bed/.bed/_tmp_plus.bed} -out "${outfile}tmp_plus.gz" ${computeMatrix_args}
+computeMatrix ${ref} -S ${plus_bw} -R ${bed_plus} -out "${outfile}tmp_plus.gz" ${computeMatrix_args}
 
 
 echo "computing matrix for minus strand annotations"
-computeMatrix ${ref} -S ${minus_bw} -R ${bed/.bed/_tmp_minus.bed} -out "${outfile}tmp_minus.gz" ${computeMatrix_args}
+computeMatrix ${ref} -S ${minus_bw} -R ${bed_minus} -out "${outfile}tmp_minus.gz" ${computeMatrix_args}
 
 echo "merging strand-specific matrix files"
 computeMatrixOperations rbind -m "${outfile}tmp_plus.gz" "${outfile}tmp_minus.gz" -o ${outfile}
