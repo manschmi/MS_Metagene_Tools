@@ -309,10 +309,10 @@ def sortUsingBed(matrix, arg_str):
         mat_order = [mat_keys.index(rstr) for rstr in rstrs if rstr in mat_keys ]
         if len(rstrs) > len(mat_order):
             failed = [rstr for rstr in rstrs if rstr not in mat_keys]
-            raise Warning('regions from bed file not found in matrix: ' + '\n'.join(failed))
+            print('NOTE: regions from bed file not found in matrix: ' + '\n'.join(failed))
         elif len(mat_order) < len(mat_keys):
             failed = [mat_key for mat_key in mat_keys if mat_key not in rstrs]
-            raise Warning('regions from matrix not found in bed files: ' + '\n'.join(failed))
+            print('NOTE: regions from matrix not found in bed files: ' + '\n'.join(failed))
         matrix.matrix = matrix.matrix[np.ma.array(mat_order),]
         matrix.regions = [matrix.regions[i] for i in mat_order]
     except:
