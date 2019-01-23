@@ -31,25 +31,39 @@ echo "args: $computeMatrix_args"
 
 
 #split the strands
-echo "splitting bed file(s)"
+if [ -f ${bed/.bed/_plus.bed} ] && [ -f ${bed/.bed/_minus.bed} ]; then
+   echo " using strand separated bed files found in same path"
+   bed_plus=${bed/.bed/_plus.bed}
+   bed_minus=${bed/.bed/_minus.bed}
+else
+   echo "splitting bed file(s)"
+   awk '$6=="+"' ${bed} > ${bed/.bed/_tmp_plus.bed}
+   awk '$6=="-"' ${bed} > ${bed/.bed/_tmp_minus.bed}
+   bed_plus=${bed/.bed/_tmp_plus.bed}
+   bed_minus=${bed/.bed/_tmp_minus.bed}
+fi
 
-awk '$6=="+"' ${bed} > tmp_plus.bed
-awk '$6=="-"' ${bed} > tmp_minus.bed
 
-echo "computing plus strand ${plus_bw}"
-computeMatrix ${ref} -S ${plus_bw} -R tmp_plus.bed -out tmp_plus.gz ${computeMatrix_args}
+echo "computing matrix for plus strand annotations"
+computeMatrix ${ref} -S ${plus_bw} -R ${bed/.bed/_tmp_plus.bed} -out "${outfile}tmp_plus.gz" ${computeMatrix_args}
 
 
-echo "computing minus strand ${minus_bw}"
-computeMatrix ${ref} -S ${minus_bw} -R tmp_minus.bed -out tmp_minus.gz ${computeMatrix_args}
+echo "computing matrix for minus strand annotations"
+computeMatrix ${ref} -S ${minus_bw} -R ${bed/.bed/_tmp_minus.bed} -out "${outfile}tmp_minus.gz" ${computeMatrix_args}
 
-echo "merging stranded files"
-computeMatrixOperations rbind -m tmp_plus.gz tmp_minus.gz -o ${outfile}
+echo "merging strand-specific matrix files"
+computeMatrixOperations rbind -m "${outfile}tmp_plus.gz" "${outfile}tmp_minus.gz" -o ${outfile}
 
 echo "resorting using original bed file"
 computeMatrixOperations sort -R ${bed} -m ${outfile} -o ${outfile}
 
-rm tmp_plus.bed
-rm tmp_minus.bed
-rm tmp_plus.gz
-rm tmp_minus.gz
+echo "cleaning up"
+if [ -f ${bed/.bed/_tmp_plus.bed} ] && [ -f ${bed/.bed/_tmp_minus.bed} ]; then
+   rm ${bed/.bed/_tmp_plus.bed}
+   rm ${bed/.bed/_tmp_minus.bed}
+fi
+
+rm "${outfile}tmp_plus.gz"
+rm "${outfile}tmp_minus.gz"
+
+echo "computeMatrixStranded3 is done"
