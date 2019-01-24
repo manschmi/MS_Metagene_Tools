@@ -16,6 +16,7 @@ on files produced by computeMatrix.
 detailed help:
     AVAILABLE TOOLS:
         - scaleBy
+        - negateMinusStrandValues
         - nanToValue
         - addPseudoCount
         - binarize
@@ -31,6 +32,9 @@ DETAILS:
 
   computeMatrixOperationsMS scaleBy <value>
         multiplies all values by a specific value, requires a value, ie -1 for negation
+
+  computeMatrixOperationsMS negateMinusStrandValues
+        multiplies all values from minus strand regions with -1 for negation
 
   computeMatrixOperationsMS nanToValue <value>
         sets all nan bins to a specific value, requires a value, typically 0
@@ -96,6 +100,7 @@ OPERATION CHAINING:
 
 def perform_operations(args, matrix):
     operations_dict = {'scaleBy': scaleValue,
+                       'negateMinusStrandValues': negateMinusStrandValues,
                        'nanToValue': nanToValue,
                        'addPseudoCount': add_pseudocount,
                        'log2': log2,
@@ -131,6 +136,18 @@ def scaleValue(matrix, scaleFactor):
     print('  scaling by value: ' + str(scaleFactor))
 
     matrix.matrix *= float(scaleFactor)
+
+    return
+
+
+def negateMinusStrandValues(matrix):
+    """
+    multiplies all values for minus strand regions *-1
+    """
+    print('  negating values from minus strand regions')
+
+    neg_strand_indeces = [i for i,r in enumerate(matrix.regions) if r[5] == '-']
+    matrix.matrix[neg_strand_indeces,] *= (-1)
 
     return
 
