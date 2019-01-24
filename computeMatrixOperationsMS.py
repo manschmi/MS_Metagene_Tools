@@ -140,14 +140,14 @@ def scaleValue(matrix, scaleFactor):
     return
 
 
-def negateMinusStrandValues(matrix):
+def negateMinusStrandValues(matrix, pad=None):
     """
     multiplies all values for minus strand regions *-1
     """
-    print('  negating values from minus strand regions')
 
-    neg_strand_indeces = [i for i,r in enumerate(matrix.regions) if r[5] == '-']
-    matrix.matrix[neg_strand_indeces,] *= (-1)
+    neg_strand_indeces = [i for i,r in enumerate(matrix.regions) if r[4] == '-']
+    print('  negating values from ' + str(len(neg_strand_indeces)) + ' minus strand regions')
+    matrix.matrix[neg_strand_indeces,] = matrix.matrix[neg_strand_indeces,] * (-1)
 
     return
 
