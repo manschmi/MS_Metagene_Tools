@@ -232,7 +232,16 @@ def removeRegionsBelow(matrix, cutoff):
         print('  removing ' + str(len(row_maxs)-len(keep)) + ' of ' + str(len(row_maxs)) + ' regions')
         matrix.matrix = matrix.matrix[keep,]
         matrix.regions = [matrix.regions[i] for i in keep]
-
+        new_grp_bounds = [0]
+        new_grp_labels = []
+        for igrp, group in enumerate(matrix.group_labels):
+            new_grp_len = len([k for k in keep if k >= matrix.group_boundaries[igrp] and k < matrix.group_boundaries[igrp+1]])
+            print('for group ' + group + ' found new length: ' + str(new_grp_len))
+            if new_grp_len > 0:
+                new_grp_bounds.append(new_grp_bounds[-1]+new_grp_len)
+                new_grp_labels.append(group)
+        matrix.group_labels = new_grp_labels
+        matrix.group_boundaries = new_grp_bounds
     return
 
 
