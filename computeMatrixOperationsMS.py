@@ -306,8 +306,9 @@ def ratioToSample(matrix, label):
     return
 
 
-def sortUsingBed(matrix, arg_str):
+def sortUsingBed2(matrix, arg_str):
     """
+    DEPRECATED VERSION!!
     Given a bedfile name resort the matrix using the bed file intervals, assumes unique intervals or matching names
     """
 
@@ -343,6 +344,17 @@ def sortUsingBed(matrix, arg_str):
             print('  grouping using column (ups: 0-based!!): ' + str(groupColumn))
             #try:
             region_to_group = {tabbed_BED_region_str(r): r[groupColumn] for r in regions}
+            #groups=set([r[4] for r  in regions])
+            #group_boundaries = [0]
+            #group_labels=[]
+            #for group in groups:
+            #   grouped_regions[group] = [(i,tabbed_BED_region_str(r)) for i, r in enumerate(regions) if r[4] == group]
+            #   group_boundaries.append(len(grouped_regions[group]+group_boundaries[-1])
+            #   group_labels.append(group)
+            #mat_order = [x[0] for x in grouped_regions[group] for group in groups]
+            #matrix.matrix = matrix.matrix[mat_order,]
+            #matrix.regions = [matrix.regions[i] for i in mat_order]
+            #
             i = 0
             matrix.group_boundaries = []
             grp_name = ''
@@ -361,6 +373,66 @@ def sortUsingBed(matrix, arg_str):
             matrix.group_boundaries.append(i)
             #except:
             #    raise Exception('regrouping failed')
+    return
+
+
+def sortUsingBed(matrix, arg_str):
+    """
+    Given a bedfile name resort the matrix using the bed file intervals, assumes unique intervals or matching names
+    """
+
+    arg_list = arg_str.split(';')
+    bed_fname = arg_list[0]
+    print('  resort matrix using BED: ' + bed_fname)
+
+    regions = loadBED(bed_fname)
+    mat_keys = [deeptools_region_str(r) for r in matrix.regions]
+    try:
+        rstrs = [tabbed_BED_region_str(r) for r in regions]
+    except:
+        raise Exception('could not interpret BED regions used for sorting')
+
+    if len(arg_list) == 1:
+        try:
+            mat_order = [mat_keys.index(rstr) for rstr in rstrs if rstr in mat_keys ]
+            if len(rstrs) > len(mat_order):
+                failed = [rstr for rstr in rstrs if rstr not in mat_keys]
+                print('NOTE: regions from bed file not found in matrix: ' + '\n'.join(failed))
+            elif len(mat_order) < len(mat_keys):
+                failed = [mat_key for mat_key in mat_keys if mat_key not in rstrs]
+                print('NOTE: regions from matrix not found in bed files: ' + '\n'.join(failed))
+            matrix.matrix = matrix.matrix[np.ma.array(mat_order),]
+            matrix.regions = [matrix.regions[i] for i in mat_order]
+        except:
+            raise Exception('reordering of regions failed')
+
+    #appending group information
+    else:
+        arg1 = arg_list[1].split(':')
+        if arg1[0] == 'groupByColumn':
+            groupColumn = int(arg1[1])
+            print('  grouping using column (ups: 0-based!!): ' + str(groupColumn))
+            try:
+                groups=set(r[4] for r  in regions)
+                print('  found groups: ' + ' '.join(groups))
+                region_group = {tabbed_BED_region_str(r): r[4] for r in regions}
+                print(region_group)
+                mat_row_regions = [region_group[deeptools_region_str(region)] for region in matrix.regions]
+                print(mat_row_regions)
+                group_boundaries=[0]
+                group_labels=list(groups)
+                grouped_row_order = []
+                for group in groups:
+                   rows_for_group = [i for i, grp in enumerate(mat_row_regions) if grp == group]
+                   print(len(rows_for_group))
+                   grouped_row_order.extend(rows_for_group)
+                   group_boundaries.append(len(grouped_row_order))
+                matrix.matrix = matrix.matrix[grouped_row_order,]
+                matrix.regions = [matrix.regions[i] for i in grouped_row_order]
+                matrix.group_boundaries = group_boundaries
+                matrix.group_labels = group_labels
+            except:
+                raise Exception('regrouping failed')
     return
 
 
@@ -474,7 +546,7 @@ def deeptools_region_str(region):
     if isinstance(region, dict):
         return region['chrom']+':'+str(region['start'])+'-'+str(region['end'])+'('+region['strand']+')_'+region['name']
     elif isinstance(region, list):
-        return region[0] + ':' + str(region[1][0][0]) + '-' + str(region[1][0][1]) + '(' + region[4] + ')_' + \
+        return region[0] + ':' + str(region[1][0][0]) + '-' + str(region[1][-1][1]) + '(' + region[4] + ')_' + \
                region[2]
 
 
