@@ -42,11 +42,15 @@ DETAILS:
   computeMatrixOperationsMS addPseudoCount <value>
         if value is skipped it will use the minimum positive value in the matrix
 
+  computeMatrixOperationsMS log2
+        all positive values transformed log2 all others to nan
+
   computeMatrixOperationsMS binarize
         all positive values set to 1 and all negative and nans to 0
 
-  computeMatrixOperationsMS log2
-        all positive values transformed log2 all others to nan
+  computeMatrixOperationsMS removeRegionsBelow <value>
+        removes all regions with total signal less or equal to value.
+        Default (ie wo value) is to remove all nan and all-0 rows.
 
   computeMatrixOperationsMS averageSamples=regex1,regex2,...
         searches for samples matching each regex and creates average for each bin in matrix
@@ -70,7 +74,7 @@ DETAILS:
         subsets the matrix for samples and groups, order or argument is obeyed, ie can be used for resorting
         note: regex will NOT be used as sample and group names in the output
         (these are preserved as multiple hits are possible)
-        UPS: not that commas are now allowed in the regexes for now
+        UPS: note that commas are now allowed in the regexes for now
 
   computeMatrixOperationsMS trimLabels=samples:sample_regex1,sample_regex2;groups:group_regex1,group_regex2
         trims the specified regexes from sample and group labels
@@ -105,6 +109,7 @@ def perform_operations(args, matrix):
                        'addPseudoCount': add_pseudocount,
                        'log2': log2,
                        'binarize': binarize,
+                       'removeRegionsBelow': removeRegionsBelow,
                        'averageSamples': averageSamples,
                        'diffToSample': diffToSample,
                        'ratioToSample': ratioToSample,
@@ -206,6 +211,24 @@ def binarize(matrix, pad=None):
     matrix.matrix[matrix.matrix > 0] = 1
     matrix.matrix[matrix.matrix <= 0] = 0
     matrix.matrix[np.isnan(matrix.matrix)] = 0
+
+    return
+
+
+def removeRegionsBelow(matrix, cutoff=0 ):
+    """
+    removes rows that do not contain at least 1 bin above a specific treshhold and all-nans
+    """
+
+    print('  scanning for rows with max value below: ' + str(cutoff))
+
+    row_maxs = matrix.matrix.max(1)
+    keep = [i for i, v in enumerate(row_maxs) if not np.isnan(v) and v > cutoff]
+
+    if len(keep) < len(row_maxs):
+        print('  removing ' + str(len(row_maxs)-len(keep)) + ' of ' + str(len(row_maxs)) + ' regions')
+        matrix.matrix = matrix.matrix[keep,]
+        matrix.regions = [matrix.regions[i] for i in keep]
 
     return
 
