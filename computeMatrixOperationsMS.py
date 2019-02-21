@@ -440,6 +440,8 @@ def sortUsingBed(matrix, arg_str):
                 print('NOTE: regions from matrix not found in bed files: ' + '\n'.join(failed))
             matrix.matrix = matrix.matrix[np.ma.array(mat_order),]
             matrix.regions = [matrix.regions[i] for i in mat_order]
+            matrix.group_boundaries = [0, len(mat_order)]
+            matrix.group_labels = ['genes']
         except:
             raise Exception('reordering of regions failed')
 
