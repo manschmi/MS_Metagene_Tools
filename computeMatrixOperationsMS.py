@@ -48,7 +48,7 @@ DETAILS:
   computeMatrixOperationsMS binarize
         all positive values set to 1 and all negative and nans to 0
 
-  computeMatrixOperationsMS removeRegionsBelow <value>
+  computeMatrixOperationsMS filterRegions <value>
         removes all regions with total signal less or equal to value.
         Default (ie wo value) is to remove all nan and all-0 rows.
 
@@ -109,7 +109,7 @@ def perform_operations(args, matrix):
                        'addPseudoCount': add_pseudocount,
                        'log2': log2,
                        'binarize': binarize,
-                       'removeRegionsBelow': removeRegionsBelow,
+                       'filterRegions': filterRegions,
                        'averageSamples': averageSamples,
                        'diffToSample': diffToSample,
                        'ratioToSample': ratioToSample,
@@ -215,7 +215,7 @@ def binarize(matrix, pad=None):
     return
 
 
-def removeRegionsBelow(matrix, cutoff):
+def filterRegions(matrix, cutoff):
     """
     removes rows that do not contain at least 1 bin above a specific treshhold and all-nans
     """
