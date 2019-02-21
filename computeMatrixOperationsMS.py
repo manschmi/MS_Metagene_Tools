@@ -215,11 +215,14 @@ def binarize(matrix, pad=None):
     return
 
 
-def removeRegionsBelow(matrix, cutoff=0 ):
+def removeRegionsBelow(matrix, cutoff):
     """
     removes rows that do not contain at least 1 bin above a specific treshhold and all-nans
     """
-
+    if not cutoff:
+        cutoff = 0
+    else:
+        cutoff = float(cutoff)
     print('  scanning for rows with max value below: ' + str(cutoff))
 
     row_maxs = matrix.matrix.max(1)
@@ -404,6 +407,8 @@ def sortUsingBed(matrix, arg_str):
     Given a bedfile name resort the matrix using the bed file intervals, assumes unique intervals or matching names
     """
 
+    #arg_str=arg_str[2].split('=')[1]
+
     arg_list = arg_str.split(';')
     bed_fname = arg_list[0]
     print('  resort matrix using BED: ' + bed_fname)
@@ -436,18 +441,15 @@ def sortUsingBed(matrix, arg_str):
             groupColumn = int(arg1[1])
             print('  grouping using column (ups: 0-based!!): ' + str(groupColumn))
             try:
-                groups=set(r[4] for r  in regions)
+                groups=set(r[groupColumn] for r  in regions)
                 print('  found groups: ' + ' '.join(groups))
-                region_group = {tabbed_BED_region_str(r): r[4] for r in regions}
-                print(region_group)
-                mat_row_regions = [region_group[deeptools_region_str(region)] for region in matrix.regions]
-                print(mat_row_regions)
+                region_group = {tabbed_BED_region_str(r): r[groupColumn] for r in regions}
+                mat_row_regions = [region_group[deeptools_region_str(region)] for region in matrix.regions if deeptools_region_str(region) in region_group]
                 group_boundaries=[0]
                 group_labels=list(groups)
                 grouped_row_order = []
                 for group in groups:
                    rows_for_group = [i for i, grp in enumerate(mat_row_regions) if grp == group]
-                   print(len(rows_for_group))
                    grouped_row_order.extend(rows_for_group)
                    group_boundaries.append(len(grouped_row_order))
                 matrix.matrix = matrix.matrix[grouped_row_order,]
@@ -466,7 +468,6 @@ def subset(matrix, arg_str):
         arg_name, regexes = arg.split(':')
         if arg_name == 'samples':
             sample_regexes = regexes.strip().split(',')
-            print(sample_regexes[0])
             print('  trying to find sample with regexes: ' + ', '.join(sample_regexes))
         elif arg_name == 'groups':
             group_regexes = regexes.split(',')
