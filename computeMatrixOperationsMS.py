@@ -19,69 +19,76 @@ detailed help:
         - negateMinusStrandValues
         - nanToValue
         - addPseudoCount
-        - binarize
         - log2
+        - binarize
+        - filterRegions
         - averageSamples
+        - diffToSample
         - ratioToSample
         - sortUsingBed
         - subset
         - trimLabels
 
 
-DETAILS:
+    TOOL DETAILS:
 
-  computeMatrixOperationsMS scaleBy <value>
-        multiplies all values by a specific value, requires a value, ie -1 for negation
+          computeMatrixOperationsMS scaleBy <value>
+                multiplies all values by a specific value, requires a value, ie -1 for negation
 
-  computeMatrixOperationsMS negateMinusStrandValues
-        multiplies all values from minus strand regions with -1 for negation
+          computeMatrixOperationsMS negateMinusStrandValues
+                multiplies all bin values from minus strand regions with -1 for negation
 
-  computeMatrixOperationsMS nanToValue <value>
-        sets all nan bins to a specific value, requires a value, typically 0
+          computeMatrixOperationsMS nanToValue <value>
+                sets all nan bins to a specific value, requires a value, typically 0
 
-  computeMatrixOperationsMS addPseudoCount <value>
-        if value is skipped it will use the minimum positive value in the matrix
+          computeMatrixOperationsMS addPseudoCount <value>
+                if value is skipped it will use the minimum positive bin value in the matrix
 
-  computeMatrixOperationsMS log2
-        all positive values transformed log2 all others to nan
+          computeMatrixOperationsMS binarize
+                all bins with positive values set to 1 and all negative and nans to 0
 
-  computeMatrixOperationsMS binarize
-        all positive values set to 1 and all negative and nans to 0
+          computeMatrixOperationsMS log2
+                all bins with positive values transformed log2 all others to nan
 
-  computeMatrixOperationsMS filterRegions <value>
-        removes all regions with total signal less or equal to value.
-        Default (ie wo value) is to remove all nan and all-0 rows.
+          computeMatrixOperationsMS filterRegions <value>
+                removes all regions with total signal less or equal to value.
+                Default (ie wo value) is to remove all nan and all-0 rows.
 
-  computeMatrixOperationsMS averageSamples=regex1,regex2,...
-        searches for samples matching each regex and creates average for each bin in matrix
-        samples not matched by any of the regexes are removed
-        output sample names are the regex used
+          computeMatrixOperationsMS averageSamples=regex1,regex2,...
+                searches for samples matching each regex and creates average for each bin in matrix
+                samples not matched by any of the regexes are removed
+                output sample names are the regex used
 
-  computeMatrixOperationsMS diffToSample=regex
-        display matrix as difference relative to the sample
-        UPS: only regex matching a single sample are allowed!
+          computeMatrixOperationsMS diffToSample=regex
+                display matrix as difference relative to the sample
+                UPS: only regex matching a single sample are allowed!
 
-  computeMatrixOperationsMS ratioToSample=regex
-        display matrix as ratio relative to the sample
-        UPS: only regex matching a single sample are allowed!
+          computeMatrixOperationsMS ratioToSample=regex
+                display matrix as ratio relative to the sample
+                UPS: only regex matching a single sample are allowed!
 
-  computeMatrixOperationsMS sortUsingBed=file1.bed,file2.bed;groupByColumn:6
-        resort using the specified bed files.
-        optional groupByColumn, if the bed files have column with group identifiers these will
-        be used for grouping (ups: group column index is 0 based)
+          computeMatrixOperationsMS sortUsingBed=file1.bed,file2.bed;groupByColumn:6
+                resort using the specified bed files.
+                optional groupByColumn, if the bed files have column with group identifiers these will
+                be used for grouping (ups: group column index is 0 based)
 
-  computeMatrixOperationsMS subset=samples:sample_regex1,sample_regex2;groups:group_regex1,group_regex2
-        subsets the matrix for samples and groups, order or argument is obeyed, ie can be used for resorting
-        note: regex will NOT be used as sample and group names in the output
-        (these are preserved as multiple hits are possible)
-        UPS: note that commas are now allowed in the regexes for now
+          computeMatrixOperationsMS subset=samples:sample_regex1,sample_regex2;groups:group_regex1,group_regex2
+                subsets the matrix for samples and groups, order or argument is obeyed, ie can be used for resorting
+                note: regex will NOT be used as sample and group names in the output
+                (these are preserved as multiple hits are possible)
+                UPS: note that commas are not allowed in the regexes for now
 
-  computeMatrixOperationsMS trimLabels=samples:sample_regex1,sample_regex2;groups:group_regex1,group_regex2
-        trims the specified regexes from sample and group labels
+          computeMatrixOperationsMS trimLabels=samples:sample_regex1,sample_regex2;groups:group_regex1,group_regex2
+                trims the specified regexes from sample and group labels
 
-OPERATION CHAINING:
--> it is possible to chain multiple operations (ie to avoid saving intermediate matrices!!)
-  computeMatrixOperations addPseudoCount averageSamples=eGFP,KD1,KD2 ratioToSample=eGFP log2
+
+    OPERATION CHAINING:
+        -> it is possible to chain multiple operations (ie to avoid saving unused intermediate matrices!!)
+        by simply using space-separate arguments as in ie:
+          computeMatrixOperations addPseudoCount averageSamples=eGFP,KD1,KD2 ratioToSample=eGFP log2\n\n\n
+
+
+
 
 """,
         epilog='example usages:\n'
