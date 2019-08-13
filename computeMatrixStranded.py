@@ -131,13 +131,6 @@ def computeMatrixOutputArgs(args=None):
                         'needed by the "plotHeatmap" and "plotProfile" tools.',
                         type=writableFile,
                         required=True)
-    # TODO This isn't implemented, see deeptools/heatmapper.py in the saveTabulatedValues() function
-    # output.add_argument('--outFileNameData',
-    #                    help='Name to save the averages per matrix '
-    #                    'column into a text file. This corresponds to '
-    #                    'the underlying data used to '
-    #                    'plot a summary profile. Example: myProfile.tab',
-    #                    type=argparse.FileType('w'))
 
     output.add_argument('--outFileNameMatrix',
                         help='If this option is given, then the matrix '
@@ -429,7 +422,7 @@ def rbindMatrices(hm1, hm2):
     """
 
     group_labels = hm1.matrix.group_labels
-    group_labels.extend(grp_label for i,grp_label in enumerate(hm2.matrix.group_labels) if grp_label not in hm1.matrix.group_labels)
+    group_labels.extend(grp_label for grp_label in hm2.matrix.group_labels if grp_label not in hm1.matrix.group_labels)
 
     ncol = hm1.matrix.matrix.shape[1]
     nrow = hm1.matrix.matrix.shape[0] + hm2.matrix.matrix.shape[0]
@@ -445,26 +438,25 @@ def rbindMatrices(hm1, hm2):
             range1 = np.arange(left_bound1, right_bound1)
             out_mat[row:(row+len(range1)),] = hm1.matrix.matrix[range1,]
             out_regions.extend(hm1.matrix.regions[left_bound1:right_bound1])
-            row=row+len(range1)
+            row += len(range1)
         if group in hm2.matrix.group_labels:
             left_bound2 = hm2.matrix.group_boundaries[hm2.matrix.group_labels.index(group)]
             right_bound2 = hm2.matrix.group_boundaries[hm2.matrix.group_labels.index(group) + 1]
             range2 = np.arange(left_bound2, right_bound2)
             out_mat[row:(row + len(range2)), ] = hm2.matrix.matrix[range2,]
             out_regions.extend(hm1.matrix.regions[left_bound2:right_bound2])
-            row = row + len(range2)
+            row += len(range2)
         group_bounds.append(row)
 
     hm1.matrix.matrix = out_mat
-
     hm1.matrix.group_labels = hm1.parameters["group_labels"] = group_labels
     hm1.matrix.group_boundaries = hm1.parameters["group_boundaries"]  = group_bounds
     hm1.matrix.regions = out_regions
+
     return hm1
 
 
-def main(args=None):
-
+def run(args):
     args = process_args(args)
     args.samplesLabel = [scoreFname.replace(args.scoreFileNamePlusSuffix, '') for scoreFname in args.scoreFileNamePlus]
     parameters = {'upstream': args.beforeRegionStartLength,
@@ -493,13 +485,16 @@ def main(args=None):
 
     print(args)
     hm = heatmapper.heatmapper()
-    hm.computeMatrix(args.scoreFileNamePlus, args.regionsFileNamePlus, parameters, blackListFileName=args.blackListFileName, verbose=args.verbose, allArgs=args)
-    hm.matrix.group_labels=[grp_label.replace(args.regionFileNamePlusSuffix, '') for grp_label in hm.matrix.group_labels]
+    hm.computeMatrix(args.scoreFileNamePlus, args.regionsFileNamePlus, parameters,
+                     blackListFileName=args.blackListFileName, verbose=args.verbose, allArgs=args)
+    hm.matrix.group_labels = [grp_label.replace(args.regionFileNamePlusSuffix, '') for grp_label in
+                              hm.matrix.group_labels]
 
     hm_minus = heatmapper.heatmapper()
     hm_minus.computeMatrix(args.scoreFileNameMinus, args.regionsFileNameMinus, parameters,
-                          blackListFileName=args.blackListFileName, verbose=args.verbose, allArgs=args)
-    hm_minus.matrix.group_labels = [grp_label.replace(args.regionFileNameMinusSuffix, '') for grp_label in hm_minus.matrix.group_labels]
+                           blackListFileName=args.blackListFileName, verbose=args.verbose, allArgs=args)
+    hm_minus.matrix.group_labels = [grp_label.replace(args.regionFileNameMinusSuffix, '') for grp_label in
+                                    hm_minus.matrix.group_labels]
 
     hm = rbindMatrices(hm, hm_minus)
 
@@ -511,7 +506,9 @@ def main(args=None):
                 if (i > 0 and i <= hm.matrix.get_num_samples()):
                     sortUsingSamples.append(i - 1)
                 else:
-                    exit("The value {0} for --sortUsingSamples is not valid. Only values from 1 to {1} are allowed.".format(args.sortUsingSamples, hm.matrix.get_num_samples()))
+                    exit(
+                        "The value {0} for --sortUsingSamples is not valid. Only values from 1 to {1} are allowed.".format(
+                            args.sortUsingSamples, hm.matrix.get_num_samples()))
             print('Samples used for ordering within each group: ', sortUsingSamples)
 
         hm.matrix.sort_groups(sort_using=args.sortUsing, sort_method=args.sortRegions, sample_list=sortUsingSamples)
@@ -519,7 +516,7 @@ def main(args=None):
     elif args.sortRegions == 'keep':
         hm.parameters['group_labels'] = hm.matrix.group_labels
         hm.parameters["group_boundaries"] = hm.matrix.group_boundaries
-        #cmo.sortMatrix(hm, args.regionsFileName, args.transcriptID, args.transcript_id_designator)
+        # cmo.sortMatrix(hm, args.regionsFileName, args.transcriptID, args.transcript_id_designator)
 
     hm.save_matrix(args.outFileName)
 
@@ -528,8 +525,6 @@ def main(args=None):
 
     if args.outFileSortedRegions:
         hm.save_BED(args.outFileSortedRegions)
-
-
 
     # Clean up temporary bigWig files, if applicable
     if not args.deepBlueKeepTemp:
@@ -542,3 +537,8 @@ def main(args=None):
             print("{} is stored in {}".format(k, args.scoreFileNamePlus[v]))
         for k, v in deepBlueFilesMinus:
             print("{} is stored in {}".format(k, args.scoreFileNameMinus[v]))
+
+
+if __name__ == '__main__':
+    args = sys.argv[1:]
+    run(args)
