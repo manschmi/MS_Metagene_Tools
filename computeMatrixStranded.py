@@ -456,8 +456,8 @@ def rbindMatrices(hm1, hm2):
     return hm1
 
 
-def run(args):
-    args = process_args(args)
+def compute_matrix(args):
+
     args.samplesLabel = [scoreFname.replace(args.scoreFileNamePlusSuffix, '') for scoreFname in args.scoreFileNamePlus]
     parameters = {'upstream': args.beforeRegionStartLength,
                   'downstream': args.afterRegionStartLength,
@@ -483,7 +483,6 @@ def run(args):
     deepBlueFilesPlus = load_deepblue_files(args.regionsFileNamePlus, args.scoreFileNamePlus)
     deepBlueFilesMinus = load_deepblue_files(args.regionsFileNameMinus, args.scoreFileNameMinus)
 
-    print(args)
     hm = heatmapper.heatmapper()
     hm.computeMatrix(args.scoreFileNamePlus, args.regionsFileNamePlus, parameters,
                      blackListFileName=args.blackListFileName, verbose=args.verbose, allArgs=args)
@@ -518,14 +517,6 @@ def run(args):
         hm.parameters["group_boundaries"] = hm.matrix.group_boundaries
         # cmo.sortMatrix(hm, args.regionsFileName, args.transcriptID, args.transcript_id_designator)
 
-    hm.save_matrix(args.outFileName)
-
-    if args.outFileNameMatrix:
-        hm.save_matrix_values(args.outFileNameMatrix)
-
-    if args.outFileSortedRegions:
-        hm.save_BED(args.outFileSortedRegions)
-
     # Clean up temporary bigWig files, if applicable
     if not args.deepBlueKeepTemp:
         for k, v in deepBlueFilesPlus:
@@ -538,7 +529,18 @@ def run(args):
         for k, v in deepBlueFilesMinus:
             print("{} is stored in {}".format(k, args.scoreFileNameMinus[v]))
 
+    return hm
+
+
 
 if __name__ == '__main__':
-    args = sys.argv[1:]
-    run(args)
+    args = process_args(sys.argv[1:])
+    hm = compute_matrix(args)
+
+    hm.save_matrix(args.outFileName)
+
+    if args.outFileNameMatrix:
+        hm.save_matrix_values(args.outFileNameMatrix)
+
+    if args.outFileSortedRegions:
+        hm.save_BED(args.outFileSortedRegions)
