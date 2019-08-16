@@ -480,8 +480,8 @@ def compute_matrix(args):
                   }
 
     # Preload deepBlue files (@MS: any file .wiggle, .wig or .bedgraph in deeptools context afaics), which need to then be deleted
-    deepBlueFilesPlus = load_deepblue_files(args.regionsFileNamePlus, args.scoreFileNamePlus)
-    deepBlueFilesMinus = load_deepblue_files(args.regionsFileNameMinus, args.scoreFileNameMinus)
+    #deepBlueFilesPlus = load_deepblue_files(args.regionsFileNamePlus, args.scoreFileNamePlus)
+    #deepBlueFilesMinus = load_deepblue_files(args.regionsFileNameMinus, args.scoreFileNameMinus)
 
     hm = heatmapper.heatmapper()
     hm.computeMatrix(args.scoreFileNamePlus, args.regionsFileNamePlus, parameters,
@@ -518,16 +518,16 @@ def compute_matrix(args):
         # cmo.sortMatrix(hm, args.regionsFileName, args.transcriptID, args.transcript_id_designator)
 
     # Clean up temporary bigWig files, if applicable
-    if not args.deepBlueKeepTemp:
-        for k, v in deepBlueFilesPlus:
-            os.remove(args.scoreFileNamePlus[v])
-        for k, v in deepBlueFilesMinus:
-            os.remove(args.scoreFileNameMinus[v])
-    else:
-        for k, v in deepBlueFilesPlus:
-            print("{} is stored in {}".format(k, args.scoreFileNamePlus[v]))
-        for k, v in deepBlueFilesMinus:
-            print("{} is stored in {}".format(k, args.scoreFileNameMinus[v]))
+    # if not args.deepBlueKeepTemp:
+    #     for k, v in deepBlueFilesPlus:
+    #         os.remove(args.scoreFileNamePlus[v])
+    #     for k, v in deepBlueFilesMinus:
+    #         os.remove(args.scoreFileNameMinus[v])
+    # else:
+    #     for k, v in deepBlueFilesPlus:
+    #         print("{} is stored in {}".format(k, args.scoreFileNamePlus[v]))
+    #     for k, v in deepBlueFilesMinus:
+    #         print("{} is stored in {}".format(k, args.scoreFileNameMinus[v]))
 
     return hm
 
