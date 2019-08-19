@@ -444,7 +444,7 @@ def rbindMatrices(hm1, hm2):
             right_bound2 = hm2.matrix.group_boundaries[hm2.matrix.group_labels.index(group) + 1]
             range2 = np.arange(left_bound2, right_bound2)
             out_mat[row:(row + len(range2)), ] = hm2.matrix.matrix[range2,]
-            out_regions.extend(hm1.matrix.regions[left_bound2:right_bound2])
+            out_regions.extend(hm2.matrix.regions[left_bound2:right_bound2])
             row += len(range2)
         group_bounds.append(row)
 
