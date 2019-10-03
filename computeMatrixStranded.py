@@ -27,16 +27,20 @@ Typically, the genome regions are genes, but any other regions defined in a BED 
 computeMatrix accepts multiple score files (bigWig format) and multiple regions files (BED format).
 This tool can also be used to filter and sort regions according
 to their score.
+The stranded version should work like the original computeMAtrix from deeptools but requires arguments
+-Rp (positive strand regions) and -Rm (negative strand regions) instead of -R
+-Sp (positive strand scores) and -Sm (negative strand scores) instead of -S
 
 To learn more about the specific parameters, type:
 
-$ computeMatrix reference-point --help or
+$ python computeMatrixStranded.py reference-point --help or
 
-$ computeMatrix scale-regions --help
+$ python computeMatrixStranded.py scale-regions --help
 
 """,
-            epilog='An example usage is:\n  computeMatrix reference-point -S '
-            '<bigwig file(s)> -R <bed file(s)> -b 1000\n \n')
+            epilog='An example usage is:\n  python computeMatrixStranded.py reference-point -Sp '
+            '<plus strand bigwig file(s)> -Sm '
+            '<minus strand bigwig file(s)> -Rp <plus strand bed file(s)> -Rm <minus strand bed file(s)> -b 1000\n \n')
 
     parser.add_argument('--version', action='version',
                         version='%(prog)s {}'.format(__version__))
